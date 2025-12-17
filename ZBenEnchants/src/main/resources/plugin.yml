@@ -1,0 +1,6 @@
+name: ZBenEnchants
+version: ${version}
+main: com.zbennoz.zbenenchants.ZBenEnchantsPlugin
+author: zbennoz
+api-version: '1.21'
+commands: {}

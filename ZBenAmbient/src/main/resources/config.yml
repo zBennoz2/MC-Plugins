@@ -1,0 +1,7 @@
+intensity:
+  leaves: 2
+  fog: 1
+enabled:
+  leaves: true
+  fog: true
+  fireflies: true

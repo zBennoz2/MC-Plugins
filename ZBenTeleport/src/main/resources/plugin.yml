@@ -1,0 +1,36 @@
+name: ZBenTeleport
+version: ${version}
+main: com.zbennoz.zbenteleport.ZBenTeleportPlugin
+author: zbennoz
+api-version: '1.21'
+depend: []
+commands:
+  tpa:
+    description: Send teleport request
+    permission: zbenteleport.tpa
+  tpaccept:
+    description: Accept teleport
+  tpdeny:
+    description: Deny teleport
+  tpacancel:
+    description: Cancel teleport requests
+  sethome:
+    description: Set a home
+  home:
+    description: Teleport to home
+  delhome:
+    description: Delete home
+  homes:
+    description: List homes
+  back:
+    description: Return to previous location
+permissions:
+  zbenteleport.bypass.cooldown:
+    description: Bypass cooldowns
+    default: op
+  zbenteleport.homes.*:
+    description: Unlimited homes
+    default: op
+  zbenteleport.tpa:
+    description: Use tpa
+    default: true

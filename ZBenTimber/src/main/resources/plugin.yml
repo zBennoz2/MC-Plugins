@@ -1,0 +1,13 @@
+name: ZBenTimber
+version: ${version}
+main: com.zbennoz.zbentimber.ZBenTimberPlugin
+author: zbennoz
+api-version: '1.21'
+commands: {}
+permissions:
+  zbentimber.tree:
+    default: true
+  zbentimber.ore:
+    default: true
+  zbentimber.stone:
+    default: true

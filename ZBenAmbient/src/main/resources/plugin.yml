@@ -1,0 +1,6 @@
+name: ZBenAmbient
+version: ${version}
+main: com.zbennoz.zbenambient.ZBenAmbientPlugin
+author: zbennoz
+api-version: '1.21'
+commands: {}

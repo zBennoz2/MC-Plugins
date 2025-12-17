@@ -1,0 +1,15 @@
+name: ZBenBackpack
+version: ${version}
+main: com.zbennoz.zbenbackpack.ZBenBackpackPlugin
+author: zbennoz
+api-version: '1.21'
+commands:
+  backpack:
+    description: Open backpack
+permissions:
+  zbenbackpack.size.9: {default: true}
+  zbenbackpack.size.18: {default: op}
+  zbenbackpack.size.27: {default: op}
+  zbenbackpack.size.36: {default: op}
+  zbenbackpack.size.45: {default: op}
+  zbenbackpack.size.54: {default: op}

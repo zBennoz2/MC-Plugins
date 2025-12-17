@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.zbennoz'
+version = '1.0.0'
+
+def paperVersion = '1.21-R0.1-SNAPSHOT'
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:${paperVersion}"
+    implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
+    implementation 'net.kyori:adventure-text-minimessage:4.17.0'
+}
+
+tasks.processResources {
+    filteringCharset = 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand(project.properties)
+    }
+}
+
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
