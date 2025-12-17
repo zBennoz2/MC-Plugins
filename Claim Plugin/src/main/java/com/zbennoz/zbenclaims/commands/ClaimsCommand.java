@@ -38,7 +38,7 @@ public class ClaimsCommand extends BaseCommand implements CommandExecutor {
         for (int i = start; i < end; i++) {
             Claim c = claims.get(i);
             plugin.getMessages().send(p, "listEntry", Map.of(
-                    "world", c.world(),
+                    "world", c.worldName(),
                     "x", String.valueOf(c.chunkX()),
                     "z", String.valueOf(c.chunkZ())
             ));
