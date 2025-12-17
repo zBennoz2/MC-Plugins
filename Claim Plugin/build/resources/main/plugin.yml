@@ -1,0 +1,46 @@
+name: ZBenClaims
+main: com.zbennoz.zbenclaims.ZBenClaimsPlugin
+version: 1.0.0
+api-version: '1.21'
+author: ZBenNoZ
+description: Chunk-based claims with trust, flags, and rank-based claim limits.
+
+commands:
+  claim:
+    description: Claim the current chunk.
+    usage: /claim
+    permission: zbenclaims.use
+  unclaim:
+    description: Unclaim the current chunk (owner only).
+    usage: /unclaim
+    permission: zbenclaims.use
+  trust:
+    description: Trust a player in your current claim.
+    usage: /trust <player>
+    permission: zbenclaims.use
+  untrust:
+    description: Untrust a player in your current claim.
+    usage: /untrust <player>
+    permission: zbenclaims.use
+  claims:
+    description: List your claims.
+    usage: /claims [page]
+    permission: zbenclaims.use
+  zbenclaims:
+    description: Admin commands for ZBenClaims.
+    usage: /zbenclaims reload
+    permission: zbenclaims.admin
+  rank:
+    description: Manage player ranks for claim limits and prefixes.
+    usage: /rank <set|get|list> ...
+    permission: zbenclaims.admin.rank
+
+permissions:
+  zbenclaims.use:
+    default: true
+  zbenclaims.admin:
+    default: op
+  zbenclaims.admin.bypass:
+    default: op
+  zbenclaims.admin.rank:
+    default: op

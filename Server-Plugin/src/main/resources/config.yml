@@ -1,0 +1,45 @@
+# Branding is NOT configurable by design (hardcoded in plugin).
+# This config only controls messages and feature toggles.
+
+features:
+  tablistBranding: true
+
+  joinHint:
+    enabled: true
+    # If true: show hint only if player has never played before
+    firstJoinOnly: true
+    # If > 0: show actionbar hint for X seconds (recommended).
+    # If 0: send once as a normal chat message.
+    durationSeconds: 5
+
+messages:
+  prefix: "&8[&aZBenCore&8]&r "
+  noPermission: "&cDazu hast du keine Rechte."
+  playerNotFound: "&cSpieler nicht gefunden."
+  onlyPlayers: "&cDieser Befehl geht nur als Spieler."
+  invalidUsage: "&cFalsche Nutzung: &7{usage}"
+
+  kick:
+    usage: "/zben kick <player> <reason...>"
+    done: "&a{player} wurde gekickt. Grund: &7{reason}"
+
+  gamerule:
+    usage: "/zben gamerule <rule> <true|false|value>"
+    invalidRule: "&cUnbekannte Gamerule: &7{rule}"
+    done: "&aGamerule &e{rule}&a gesetzt auf &e{value}&a in Welt &e{world}&a."
+
+  time:
+    usage: "/zben time <day|night|set <value>>"
+    done: "&aZeit in Welt &e{world}&a gesetzt auf &e{value}&a."
+
+  weather:
+    usage: "/zben weather <sun|rain|thunder>"
+    done: "&aWetter in Welt &e{world}&a gesetzt auf &e{value}&a."
+
+  whitelist:
+    usage: "/zben whitelist <on|off|add|remove|list> [player]"
+    on: "&aWhitelist aktiviert."
+    off: "&aWhitelist deaktiviert."
+    add: "&a{player} wurde zur Whitelist hinzugefügt."
+    remove: "&a{player} wurde von der Whitelist entfernt."
+    listHeader: "&aWhitelist (&e{count}&a): &7{players}"

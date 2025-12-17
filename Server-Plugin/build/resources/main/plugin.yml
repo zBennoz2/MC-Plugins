@@ -1,0 +1,48 @@
+name: ZBenCore
+version: 1.0.0
+main: com.zbennoz.zbencore.ZBenCore
+api-version: "1.21"
+author: ZBenNoZ
+description: Core plugin for branding + lightweight management without OP.
+
+commands:
+  about:
+    description: Shows server host/branding information.
+    usage: /about
+    permission: zben.about
+  zben:
+    description: Server management commands without OP.
+    usage: /zben <kick|gamerule|time|weather|whitelist>
+    permission: zben.manage
+
+permissions:
+  zben.owner:
+    description: Owner rank - has all ZBenCore permissions.
+    default: false
+    children:
+      zben.about: true
+      zben.manage: true
+      zben.manage.kick: true
+      zben.manage.gamerule: true
+      zben.manage.time: true
+      zben.manage.weather: true
+      zben.manage.whitelist: true
+
+  zben.about:
+    default: true
+    description: Allows using /about.
+
+  zben.manage:
+    default: false
+    description: Base permission for /zben.
+
+  zben.manage.kick:
+    default: false
+  zben.manage.gamerule:
+    default: false
+  zben.manage.time:
+    default: false
+  zben.manage.weather:
+    default: false
+  zben.manage.whitelist:
+    default: false
