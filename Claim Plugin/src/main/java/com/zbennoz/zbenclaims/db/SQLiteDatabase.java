@@ -27,16 +27,21 @@ public class SQLiteDatabase implements Database {
             conn.setAutoCommit(true);
 
             try (Statement st = conn.createStatement()) {
+                st.executeUpdate("PRAGMA journal_mode=WAL;");
+                st.executeUpdate("PRAGMA synchronous=NORMAL;");
                 st.executeUpdate("PRAGMA foreign_keys = ON;");
 
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS claims(" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "owner_uuid TEXT NOT NULL," +
                         "world TEXT NOT NULL," +
+                        "world_uuid TEXT," +
                         "chunk_x INTEGER NOT NULL," +
                         "chunk_z INTEGER NOT NULL," +
                         "UNIQUE(world, chunk_x, chunk_z)" +
                         ");");
+
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_claims_world_uuid ON claims(world_uuid);");
 
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS trusted(" +
                         "claim_id INTEGER NOT NULL," +
@@ -72,13 +77,14 @@ public class SQLiteDatabase implements Database {
     }
 
     @Override
-    public long createClaim(UUID owner, String world, int chunkX, int chunkZ) {
-        String sql = "INSERT INTO claims(owner_uuid, world, chunk_x, chunk_z) VALUES(?,?,?,?)";
+    public long createClaim(UUID owner, String world, UUID worldUuid, int chunkX, int chunkZ) {
+        String sql = "INSERT INTO claims(owner_uuid, world, world_uuid, chunk_x, chunk_z) VALUES(?,?,?,?,?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, owner.toString());
             ps.setString(2, world);
-            ps.setInt(3, chunkX);
-            ps.setInt(4, chunkZ);
+            ps.setString(3, worldUuid != null ? worldUuid.toString() : null);
+            ps.setInt(4, chunkX);
+            ps.setInt(5, chunkZ);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getLong(1);
@@ -101,7 +107,7 @@ public class SQLiteDatabase implements Database {
 
     @Override
     public Claim getClaim(String world, int chunkX, int chunkZ) {
-        String sql = "SELECT id, owner_uuid, world, chunk_x, chunk_z FROM claims WHERE world=? AND chunk_x=? AND chunk_z=?";
+        String sql = "SELECT id, owner_uuid, world, world_uuid, chunk_x, chunk_z FROM claims WHERE world=? AND chunk_x=? AND chunk_z=?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, world);
             ps.setInt(2, chunkX);
@@ -117,7 +123,7 @@ public class SQLiteDatabase implements Database {
 
     @Override
     public Claim getClaimById(long claimId) {
-        String sql = "SELECT id, owner_uuid, world, chunk_x, chunk_z FROM claims WHERE id=?";
+        String sql = "SELECT id, owner_uuid, world, world_uuid, chunk_x, chunk_z FROM claims WHERE id=?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, claimId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -131,7 +137,7 @@ public class SQLiteDatabase implements Database {
 
     @Override
     public List<Claim> getClaimsByOwner(UUID owner) {
-        String sql = "SELECT id, owner_uuid, world, chunk_x, chunk_z FROM claims WHERE owner_uuid=? ORDER BY world, chunk_x, chunk_z";
+        String sql = "SELECT id, owner_uuid, world, world_uuid, chunk_x, chunk_z FROM claims WHERE owner_uuid=? ORDER BY world, chunk_x, chunk_z";
         List<Claim> out = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, owner.toString());
@@ -146,7 +152,7 @@ public class SQLiteDatabase implements Database {
 
     @Override
     public List<Claim> getAllClaims() {
-        String sql = "SELECT id, owner_uuid, world, chunk_x, chunk_z FROM claims";
+        String sql = "SELECT id, owner_uuid, world, world_uuid, chunk_x, chunk_z FROM claims";
         List<Claim> out = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -279,8 +285,17 @@ public class SQLiteDatabase implements Database {
         long id = rs.getLong("id");
         UUID owner = UUID.fromString(rs.getString("owner_uuid"));
         String world = rs.getString("world");
+        String worldUuidRaw = null;
+        try { worldUuidRaw = rs.getString("world_uuid"); } catch (SQLException ignored) {}
+        UUID worldUuid = null;
+        if (worldUuidRaw != null && !worldUuidRaw.isBlank()) {
+            try { worldUuid = UUID.fromString(worldUuidRaw); } catch (IllegalArgumentException ignored) {}
+        }
+        if (worldUuid == null && world != null) {
+            worldUuid = UUID.nameUUIDFromBytes(world.getBytes());
+        }
         int x = rs.getInt("chunk_x");
         int z = rs.getInt("chunk_z");
-        return new Claim(id, owner, world, x, z);
+        return new Claim(id, owner, world, worldUuid, x, z);
     }
 }

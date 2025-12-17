@@ -10,7 +10,7 @@ public interface Database {
     void init();
     void close();
 
-    long createClaim(UUID owner, String world, int chunkX, int chunkZ);
+    long createClaim(UUID owner, String worldName, UUID worldUuid, int chunkX, int chunkZ);
     void deleteClaim(long claimId);
     Claim getClaim(String world, int chunkX, int chunkZ);
     Claim getClaimById(long claimId);

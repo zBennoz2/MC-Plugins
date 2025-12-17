@@ -9,6 +9,9 @@ import org.bukkit.World;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ClaimService {
 
@@ -16,6 +19,8 @@ public class ClaimService {
     private final Database db;
     private final MessageService msg;
     private final RankManager rankManager;
+
+    private final ExecutorService dbWriter = Executors.newSingleThreadExecutor();
 
     private final Map<ChunkKey, Claim> claimCache = new ConcurrentHashMap<>();
     private final Map<Long, Set<UUID>> trustedCache = new ConcurrentHashMap<>();
@@ -33,11 +38,10 @@ public class ClaimService {
         trustedCache.clear();
         flagCache.clear();
 
-        boolean preload = plugin.getConfig().getBoolean("cache.preloadAllClaims", true);
-        if (!preload) return;
-
         for (Claim c : db.getAllClaims()) {
-            claimCache.put(new ChunkKey(c.world(), c.chunkX(), c.chunkZ()), c);
+            claimCache.put(new ChunkKey(c.worldUuid(), c.chunkX(), c.chunkZ()), c);
+            trustedCache.put(c.id(), new HashSet<>(db.getTrusted(c.id())));
+            flagCache.put(c.id(), new HashMap<>(db.getFlags(c.id())));
         }
         plugin.getLogger().info("Loaded " + claimCache.size() + " claims into cache.");
     }
@@ -47,19 +51,14 @@ public class ClaimService {
     }
 
     public void shutdown() {
-        // nothing for now
+        dbWriter.shutdown();
+        try { dbWriter.awaitTermination(5, TimeUnit.SECONDS); } catch (InterruptedException ignored) {}
     }
 
     public Optional<Claim> getClaim(World world, int chunkX, int chunkZ) {
-        ChunkKey key = new ChunkKey(world.getName(), chunkX, chunkZ);
+        ChunkKey key = new ChunkKey(world.getUID(), chunkX, chunkZ);
         Claim cached = claimCache.get(key);
         if (cached != null) return Optional.of(cached);
-
-        Claim c = db.getClaim(world.getName(), chunkX, chunkZ);
-        if (c != null) {
-            claimCache.put(key, c);
-            return Optional.of(c);
-        }
         return Optional.empty();
     }
 
@@ -90,39 +89,43 @@ public class ClaimService {
             return ClaimResult.fail("Chunk not loaded.");
         }
 
-        ChunkKey key = new ChunkKey(w.getName(), chunk.getX(), chunk.getZ());
+        ChunkKey key = new ChunkKey(w.getUID(), chunk.getX(), chunk.getZ());
         Claim existing = claimCache.get(key);
-        if (existing == null) existing = db.getClaim(w.getName(), chunk.getX(), chunk.getZ());
         if (existing != null) return ClaimResult.alreadyClaimed(existing);
 
         int limit = rankManager.getClaimLimit(owner);
         int count = db.countClaimsByOwner(owner);
         if (count >= limit) return ClaimResult.limitReached(limit);
 
-        long id = db.createClaim(owner, w.getName(), chunk.getX(), chunk.getZ());
-        Claim claim = new Claim(id, owner, w.getName(), chunk.getX(), chunk.getZ());
-        claimCache.put(key, claim);
-
         boolean interactDefault = plugin.getConfig().getBoolean("flags.default.interact_protected", false);
-        db.setFlag(id, "interact_protected", interactDefault);
-        flagCache.put(id, new HashMap<>(Map.of("interact_protected", interactDefault)));
+        Map<String, Boolean> defaults = new HashMap<>();
+        defaults.put("interact_protected", interactDefault);
 
-        return ClaimResult.success(claim);
+        dbWriter.submit(() -> {
+            long id = db.createClaim(owner, w.getName(), w.getUID(), chunk.getX(), chunk.getZ());
+            Claim stored = new Claim(id, owner, w.getName(), w.getUID(), chunk.getX(), chunk.getZ());
+            claimCache.put(key, stored);
+            defaults.forEach((f, v) -> db.setFlag(id, f, v));
+            flagCache.put(id, new HashMap<>(defaults));
+        });
+
+        Claim provisional = new Claim(-1, owner, w.getName(), w.getUID(), chunk.getX(), chunk.getZ());
+        claimCache.put(key, provisional);
+        return ClaimResult.success(provisional);
     }
 
     public ClaimResult unclaimChunk(Chunk chunk, UUID actor) {
         World w = chunk.getWorld();
-        ChunkKey key = new ChunkKey(w.getName(), chunk.getX(), chunk.getZ());
+        ChunkKey key = new ChunkKey(w.getUID(), chunk.getX(), chunk.getZ());
         Claim claim = claimCache.get(key);
-        if (claim == null) claim = db.getClaim(w.getName(), chunk.getX(), chunk.getZ());
         if (claim == null) return ClaimResult.notClaimed();
 
         if (!claim.ownerUuid().equals(actor)) return ClaimResult.notOwner(claim);
 
-        db.deleteClaim(claim.id());
         claimCache.remove(key);
         trustedCache.remove(claim.id());
         flagCache.remove(claim.id());
+        dbWriter.submit(() -> db.deleteClaim(claim.id()));
         return ClaimResult.success(claim);
     }
 
@@ -136,8 +139,8 @@ public class ClaimService {
         Set<UUID> trusted = trustedCache.computeIfAbsent(claim.id(), id -> new HashSet<>(db.getTrusted(id)));
         if (trusted.contains(target)) return TrustResult.alreadyTrusted();
 
-        db.addTrusted(claim.id(), target);
         trusted.add(target);
+        dbWriter.submit(() -> db.addTrusted(claim.id(), target));
         return TrustResult.success();
     }
 
@@ -151,8 +154,8 @@ public class ClaimService {
         Set<UUID> trusted = trustedCache.computeIfAbsent(claim.id(), id -> new HashSet<>(db.getTrusted(id)));
         if (!trusted.contains(target)) return TrustResult.notTrusted();
 
-        db.removeTrusted(claim.id(), target);
         trusted.remove(target);
+        dbWriter.submit(() -> db.removeTrusted(claim.id(), target));
         return TrustResult.success();
     }
 
