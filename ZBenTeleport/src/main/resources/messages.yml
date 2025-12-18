@@ -1,0 +1,72 @@
+no-permission: "<red>Du hast keine Berechtigung.</red>"
+cooldown: "<red>Warte noch <seconds>s bevor du das erneut nutzen kannst.</red>"
+usage:
+  tpa: "<gray>Benutzung: /tpa <spieler></gray>"
+  tphere: "<gray>Benutzung: /tphere <spieler></gray>"
+  tpblock: "<gray>Benutzung: /tpblock <spieler></gray>"
+  tpunblock: "<gray>Benutzung: /tpunblock <spieler></gray>"
+  setwarp: "<gray>Benutzung: /setwarp <name></gray>"
+  delwarp: "<gray>Benutzung: /delwarp <name></gray>"
+  warp: "<gray>Benutzung: /warp <name></gray>"
+
+tpa:
+  invalid-target: "<red>Spieler nicht gefunden.</red>"
+  target-disabled: "<red>Dieser Spieler akzeptiert aktuell keine Anfragen.</red>"
+  blocked: "<red>Dieser Spieler hat dich blockiert.</red>"
+  already-sent: "<yellow>Du hast bereits eine ausstehende Anfrage.</yellow>"
+  request:
+    target: "<yellow><sender> möchte sich zu dir teleportieren.</yellow> <click:run_command:'/tpaccept <id>'><hover:show_text:'<gray>Anfrage akzeptieren</gray>'><green>[AKZEPTIEREN]</green></hover></click> <click:run_command:'/tpdeny <id>'><hover:show_text:'<gray>Anfrage ablehnen</gray>'><red>[ABLEHNEN]</red></hover></click>"
+    here: "<yellow><sender> möchte dich zu sich teleportieren.</yellow> <click:run_command:'/tpaccept <id>'><hover:show_text:'<gray>Anfrage akzeptieren</gray>'><green>[AKZEPTIEREN]</green></hover></click> <click:run_command:'/tpdeny <id>'><hover:show_text:'<gray>Anfrage ablehnen</gray>'><red>[ABLEHNEN]</red></hover></click>"
+  sent: "<green>Anfrage an <target> gesendet.</green>"
+  here:
+    sent: "<green>Anfrage an <target> gesendet.</green>"
+  replaced: "<yellow>Deine vorherige Anfrage wurde ersetzt.</yellow>"
+  cancelled: "<yellow>Du hast deine Anfrage abgebrochen.</yellow>"
+  no-pending: "<red>Keine ausstehende Anfrage gefunden.</red>"
+  requester-offline: "<red>Der Anfragende ist offline.</red>"
+  accepted:
+    sender: "<green><target> hat deine Anfrage akzeptiert.</green>"
+    target: "<green>Du hast die Anfrage von <sender> akzeptiert.</green>"
+  denied:
+    sender: "<red><target> hat deine Anfrage abgelehnt.</red>"
+    target: "<yellow>Du hast die Anfrage von <sender> abgelehnt.</yellow>"
+  expired:
+    sender: "<red>Deine Teleport-Anfrage ist abgelaufen.</red>"
+    target: "<red>Die Teleport-Anfrage ist abgelaufen.</red>"
+
+tptoggle:
+  enabled: "<green>Du akzeptierst nun wieder Teleport-Anfragen.</green>"
+  disabled: "<yellow>Du akzeptierst nun keine Teleport-Anfragen mehr.</yellow>"
+
+tpblock:
+  self: "<red>Du kannst dich nicht selbst blocken.</red>"
+  added: "<green><player> wurde blockiert.</green>"
+  already: "<yellow>Dieser Spieler ist bereits blockiert.</yellow>"
+  removed: "<green>Blockierung für <player> aufgehoben.</green>"
+  notfound: "<yellow>Dieser Spieler ist nicht blockiert.</yellow>"
+  empty: "<gray>Du hast keine blockierten Spieler.</gray>"
+  list: "<green>Blockierte Spieler:</green> <players>"
+
+rtp:
+  disabled: "<red>Random Teleport ist deaktiviert.</red>"
+  not-allowed: "<red>In dieser Welt ist RTP nicht erlaubt.</red>"
+  failed: "<red>Kein sicherer Ort gefunden.</red>"
+  success: "<green>Teleportiert nach X: <x> Y: <y> Z: <z></green>"
+
+warp:
+  set: "<green>Warp <name> gesetzt.</green>"
+  deleted: "<green>Warp <name> gelöscht.</green>"
+  notfound: "<red>Warp <name> existiert nicht.</red>"
+  teleport: "<green>Teleportiere zu Warp <name>.</green>"
+  none: "<yellow>Keine Warps gesetzt.</yellow>"
+  list: "<green>Verfügbare Warps:</green> <warps>"
+
+home:
+  limit: "<red>Du hast dein Home-Limit (<limit>) erreicht.</red>"
+  saved: "<green>Home <name> gespeichert.</green>"
+  notfound: "<red>Kein Home namens <name> gefunden.</red>"
+  teleport: "<green>Teleportiere zu Home <name>.</green>"
+  deleted: "<green>Home <name> gelöscht.</green>"
+
+homes:
+  limit: "<gray><count>/<limit> Homes gesetzt.</gray>"

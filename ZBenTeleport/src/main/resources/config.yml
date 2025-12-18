@@ -3,9 +3,25 @@ cooldowns:
   tpa: 5000
   back: 3000
   home: 1000
+  rtp: 30000
+
 homes:
-  default-limit: 1
+  defaultLimit: 1
+  permissionLimits:
+    zbenteleport.homes.5: 5
+    zbenteleport.homes.10: 10
+
 back:
   prefer-death: true
+
 tpa:
-  expire-seconds: 60
+  timeoutSeconds: 60
+  replaceExisting: true
+
+rtp:
+  enabled: true
+  minRadius: 500
+  maxRadius: 5000
+  maxAttempts: 30
+  cooldownSeconds: 30
+  worldsAllowed: []

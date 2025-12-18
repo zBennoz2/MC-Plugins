@@ -33,6 +33,10 @@ public class CooldownManager {
 
     public void apply(UUID playerId, String key) {
         long duration = plugin.getConfig().getLong("cooldowns." + key, 0L);
+        apply(playerId, key, duration);
+    }
+
+    public void apply(UUID playerId, String key, long duration) {
         if (duration <= 0) {
             cooldowns.remove(playerKey(playerId, key));
             return;

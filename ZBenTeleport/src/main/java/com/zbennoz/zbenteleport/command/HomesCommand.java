@@ -38,7 +38,15 @@ public class HomesCommand implements CommandExecutor, Listener {
             sender.sendMessage("Only players can use this.");
             return true;
         }
+        if (!player.hasPermission("zbenteleport.homes")) {
+            player.sendMessage(plugin.messages().component("no-permission"));
+            return true;
+        }
         Map<String, org.bukkit.Location> homes = homeManager.loadHomes(player.getUniqueId());
+        int limit = homeManager.getHomeLimit(player);
+        player.sendMessage(plugin.messages().component("homes.limit",
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed("count", String.valueOf(homes.size())),
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed("limit", String.valueOf(limit))));
         Inventory inventory = Bukkit.createInventory(player, Math.max(9, ((homes.size() / 9) + 1) * 9), Component.text("Homes"));
         homes.forEach((name, location) -> {
             ItemStack item = new ItemStack(Material.PAPER);

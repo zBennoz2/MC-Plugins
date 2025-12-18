@@ -12,13 +12,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class TpaCommand implements CommandExecutor {
+public class TphereCommand implements CommandExecutor {
 
     private final ZBenTeleportPlugin plugin;
     private final TpaManager tpaManager;
     private final PlayerSettingsManager settingsManager;
 
-    public TpaCommand(ZBenTeleportPlugin plugin, TpaManager tpaManager) {
+    public TphereCommand(ZBenTeleportPlugin plugin, TpaManager tpaManager) {
         this.plugin = plugin;
         this.tpaManager = tpaManager;
         this.settingsManager = plugin.playerSettingsManager();
@@ -30,7 +30,7 @@ public class TpaCommand implements CommandExecutor {
             sender.sendMessage(Component.text("Only players can use this."));
             return true;
         }
-        if (!player.hasPermission("zbenteleport.tpa")) {
+        if (!player.hasPermission("zbenteleport.tphere")) {
             player.sendMessage(plugin.messages().component("no-permission"));
             return true;
         }
@@ -40,7 +40,7 @@ public class TpaCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            player.sendMessage(plugin.messages().component("usage.tpa"));
+            player.sendMessage(plugin.messages().component("usage.tphere"));
             return true;
         }
         Player target = Bukkit.getPlayerExact(args[0]);
@@ -57,18 +57,18 @@ public class TpaCommand implements CommandExecutor {
             return true;
         }
 
-        var status = tpaManager.createRequest(player, target, TpaManager.RequestType.TPA);
+        var status = tpaManager.createRequest(player, target, TpaManager.RequestType.TPA_HERE);
         if (status.result() == TpaManager.RequestResult.DUPLICATE) {
             player.sendMessage(plugin.messages().component("tpa.already-sent"));
             return true;
         }
 
-        Component message = plugin.messages().component("tpa.request.target",
+        Component message = plugin.messages().component("tpa.request.here",
                 Placeholder.unparsed("sender", player.getName()),
                 Placeholder.unparsed("id", status.request().id().toString()));
 
         target.sendMessage(message);
-        player.sendMessage(plugin.messages().component("tpa.sent", Placeholder.unparsed("target", target.getName())));
+        player.sendMessage(plugin.messages().component("tpa.here.sent", Placeholder.unparsed("target", target.getName())));
         plugin.cooldownManager().apply(player.getUniqueId(), "tpa");
         if (status.result() == TpaManager.RequestResult.REPLACED) {
             player.sendMessage(plugin.messages().component("tpa.replaced"));
