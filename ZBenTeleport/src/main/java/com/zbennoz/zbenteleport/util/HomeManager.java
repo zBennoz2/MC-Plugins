@@ -36,11 +36,21 @@ public class HomeManager {
     }
 
     public int getHomeLimit(OfflinePlayer player) {
-        int limit = plugin.getConfig().getInt("homes.default-limit", 1);
-        for (var perm : player.getEffectivePermissions()) {
-            Matcher matcher = HOME_LIMIT_PERMISSION.matcher(perm.getPermission());
-            if (matcher.matches() && perm.getValue()) {
-                limit = Math.max(limit, Integer.parseInt(matcher.group(1)));
+        int limit = plugin.getConfig().getInt("homes.defaultLimit",
+                plugin.getConfig().getInt("homes.default-limit", 1));
+        var permissionLimits = plugin.getConfig().getConfigurationSection("homes.permissionLimits");
+        if (permissionLimits != null && player instanceof org.bukkit.entity.Player online) {
+            for (String perm : permissionLimits.getKeys(false)) {
+                int value = permissionLimits.getInt(perm, limit);
+                if (online.hasPermission(perm)) {
+                    limit = Math.max(limit, value);
+                }
+            }
+            for (var perm : online.getEffectivePermissions()) {
+                Matcher matcher = HOME_LIMIT_PERMISSION.matcher(perm.getPermission());
+                if (matcher.matches() && perm.getValue()) {
+                    limit = Math.max(limit, Integer.parseInt(matcher.group(1)));
+                }
             }
         }
         return limit;

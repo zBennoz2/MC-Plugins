@@ -3,6 +3,7 @@ package com.zbennoz.zbenteleport.command;
 import com.zbennoz.zbenteleport.ZBenTeleportPlugin;
 import com.zbennoz.zbenteleport.util.HomeManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -41,28 +42,40 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
 
         switch (mode) {
             case SET -> {
+                if (!player.hasPermission("zbenteleport.sethome")) {
+                    player.sendMessage(plugin.messages().component("no-permission"));
+                    return true;
+                }
                 boolean ok = homeManager.setHome(player.getUniqueId(), homeName, player.getLocation(), limit);
                 if (!ok) {
-                    player.sendMessage(Component.text("Home limit reached."));
+                    player.sendMessage(plugin.messages().component("home.limit", Placeholder.unparsed("limit", String.valueOf(limit))));
                 } else {
-                    player.sendMessage(Component.text("Home saved."));
+                    player.sendMessage(plugin.messages().component("home.saved", Placeholder.unparsed("name", homeName)));
                 }
             }
             case TELEPORT -> {
-                var location = homes.get(homeName);
-                if (location == null) {
-                    player.sendMessage(Component.text("Home not found."));
+                if (!player.hasPermission("zbenteleport.home")) {
+                    player.sendMessage(plugin.messages().component("no-permission"));
                     return true;
                 }
-                player.teleportAsync(location);
+                var location = homes.get(homeName);
+                if (location == null) {
+                    player.sendMessage(plugin.messages().component("home.notfound", Placeholder.unparsed("name", homeName)));
+                    return true;
+                }
                 plugin.database().saveLastLocationAsync(player.getUniqueId(), player.getLocation(), "teleport");
-                player.sendMessage(Component.text("Teleported to home."));
+                player.teleportAsync(location);
+                player.sendMessage(plugin.messages().component("home.teleport", Placeholder.unparsed("name", homeName)));
             }
             case DELETE -> {
+                if (!player.hasPermission("zbenteleport.delhome")) {
+                    player.sendMessage(plugin.messages().component("no-permission"));
+                    return true;
+                }
                 if (homeManager.deleteHome(player.getUniqueId(), homeName)) {
-                    player.sendMessage(Component.text("Home deleted."));
+                    player.sendMessage(plugin.messages().component("home.deleted", Placeholder.unparsed("name", homeName)));
                 } else {
-                    player.sendMessage(Component.text("Home not found."));
+                    player.sendMessage(plugin.messages().component("home.notfound", Placeholder.unparsed("name", homeName)));
                 }
             }
         }

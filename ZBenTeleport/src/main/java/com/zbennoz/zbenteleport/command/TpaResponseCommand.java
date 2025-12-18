@@ -3,6 +3,7 @@ package com.zbennoz.zbenteleport.command;
 import com.zbennoz.zbenteleport.ZBenTeleportPlugin;
 import com.zbennoz.zbenteleport.util.TpaManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -10,6 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class TpaResponseCommand implements CommandExecutor {
 
@@ -31,28 +34,45 @@ public class TpaResponseCommand implements CommandExecutor {
         }
 
         if (accept == null) {
-            tpaManager.cancel(player);
-            player.sendMessage(Component.text("Request cancelled."));
+            if (tpaManager.cancelOutgoing(player)) {
+                player.sendMessage(plugin.messages().component("tpa.cancelled"));
+            } else {
+                player.sendMessage(plugin.messages().component("tpa.no-pending"));
+            }
             return true;
         }
 
-        var targetId = tpaManager.consume(player, accept);
-        if (targetId == null) {
-            player.sendMessage(Component.text("No pending request."));
+        UUID requestId = null;
+        if (args.length > 0) {
+            try {
+                requestId = UUID.fromString(args[0]);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        var request = tpaManager.consume(player, requestId);
+        if (request == null) {
+            player.sendMessage(plugin.messages().component("tpa.no-pending"));
             return true;
         }
-        Player requester = Bukkit.getPlayer(targetId);
+
+        Player requester = Bukkit.getPlayer(request.sender());
         if (requester == null) {
-            player.sendMessage(Component.text("Requester offline."));
+            player.sendMessage(plugin.messages().component("tpa.requester-offline"));
             return true;
         }
-        if (accept) {
-            requester.teleportAsync(player.getLocation());
-            requester.sendMessage(Component.text("Teleported."));
-            player.sendMessage(Component.text("Accepted request."));
+
+        if (Boolean.TRUE.equals(accept)) {
+            if (request.type() == TpaManager.RequestType.TPA) {
+                requester.teleportAsync(player.getLocation());
+            } else {
+                player.teleportAsync(requester.getLocation());
+            }
+            requester.sendMessage(plugin.messages().component("tpa.accepted.sender", Placeholder.unparsed("target", player.getName())));
+            player.sendMessage(plugin.messages().component("tpa.accepted.target", Placeholder.unparsed("sender", requester.getName())));
         } else {
-            requester.sendMessage(Component.text("Request denied."));
-            player.sendMessage(Component.text("Denied request."));
+            requester.sendMessage(plugin.messages().component("tpa.denied.sender", Placeholder.unparsed("target", player.getName())));
+            player.sendMessage(plugin.messages().component("tpa.denied.target", Placeholder.unparsed("sender", requester.getName())));
         }
         return true;
     }

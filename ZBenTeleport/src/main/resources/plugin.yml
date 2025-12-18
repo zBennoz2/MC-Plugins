@@ -3,25 +3,58 @@ version: ${version}
 main: com.zbennoz.zbenteleport.ZBenTeleportPlugin
 author: zbennoz
 api-version: '1.21'
-depend: []
 commands:
   tpa:
     description: Send teleport request
     permission: zbenteleport.tpa
+  tphere:
+    description: Ask player to teleport to you
+    permission: zbenteleport.tphere
   tpaccept:
     description: Accept teleport
   tpdeny:
     description: Deny teleport
   tpacancel:
     description: Cancel teleport requests
+  tptoggle:
+    description: Toggle receiving teleport requests
+    permission: zbenteleport.tptoggle
+  tpblock:
+    description: Block a player from sending requests
+    permission: zbenteleport.tpblock
+  tpunblock:
+    description: Unblock a player from sending requests
+    permission: zbenteleport.tpunblock
+  tpblocklist:
+    description: List blocked players
+    permission: zbenteleport.tpblocklist
+  rtp:
+    description: Random teleport
+    permission: zbenteleport.rtp
+  setwarp:
+    description: Set a warp
+    permission: zbenteleport.warp.set
+  delwarp:
+    description: Delete a warp
+    permission: zbenteleport.warp.del
+  warp:
+    description: Teleport to a warp
+    permission: zbenteleport.warp.use
+  warps:
+    description: List warps
+    permission: zbenteleport.warp.list
   sethome:
     description: Set a home
+    permission: zbenteleport.sethome
   home:
     description: Teleport to home
+    permission: zbenteleport.home
   delhome:
     description: Delete home
+    permission: zbenteleport.delhome
   homes:
     description: List homes
+    permission: zbenteleport.homes
   back:
     description: Return to previous location
 permissions:
@@ -33,4 +66,46 @@ permissions:
     default: op
   zbenteleport.tpa:
     description: Use tpa
+    default: true
+  zbenteleport.tphere:
+    description: Use tphere
+    default: true
+  zbenteleport.tptoggle:
+    description: Toggle tpa receiving
+    default: true
+  zbenteleport.tpblock:
+    description: Block players
+    default: true
+  zbenteleport.tpunblock:
+    description: Unblock players
+    default: true
+  zbenteleport.tpblocklist:
+    description: List blocked players
+    default: true
+  zbenteleport.rtp:
+    description: Use RTP
+    default: true
+  zbenteleport.warp.use:
+    description: Use warps
+    default: true
+  zbenteleport.warp.set:
+    description: Set warps
+    default: op
+  zbenteleport.warp.del:
+    description: Delete warps
+    default: op
+  zbenteleport.warp.list:
+    description: List warps
+    default: true
+  zbenteleport.home:
+    description: Teleport to home
+    default: true
+  zbenteleport.sethome:
+    description: Set homes
+    default: true
+  zbenteleport.delhome:
+    description: Delete homes
+    default: true
+  zbenteleport.homes:
+    description: List homes
     default: true
