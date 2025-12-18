@@ -1,0 +1,124 @@
+timbenning@Mac MC-Plugins % cd ZBenAmbient/
+timbenning@Mac ZBenAmbient % ./gradlew build
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not find io.papermc.paper:paper-api:.
+     Required by:
+         root project :
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 869ms
+1 actionable task: 1 executed
+timbenning@Mac ZBenAmbient % cd ..
+timbenning@Mac MC-Plugins % cd ZBenBackpack/
+timbenning@Mac ZBenBackpack % ./gradlew build 
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not find io.papermc.paper:paper-api:.
+     Required by:
+         root project :
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 6s
+1 actionable task: 1 executed
+timbenning@Mac ZBenBackpack % cd ..
+timbenning@Mac MC-Plugins % cd ZB
+cd: no such file or directory: ZB
+timbenning@Mac MC-Plugins % cd ZBenEnchants/
+timbenning@Mac ZBenEnchants % ./gradlew build 
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not find io.papermc.paper:paper-api:.
+     Required by:
+         root project :
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2s
+1 actionable task: 1 executed
+timbenning@Mac ZBenEnchants % cd ..
+timbenning@Mac MC-Plugins % cd ZBenTeleport/
+timbenning@Mac ZBenTeleport % ./gradlew build 
+
+> Task :compileJava
+/Users/timbenning/Library/CloudStorage/OneDrive-Persönlich/Webseite/Plugins/MC-Plugins/ZBenTeleport/src/main/java/com/zbennoz/zbenteleport/util/HomeManager.java:40: Fehler: Symbol nicht gefunden
+        for (var perm : player.getEffectivePermissions()) {
+                              ^
+  Symbol: Methode getEffectivePermissions()
+  Ort: Variable player von Typ OfflinePlayer
+1 Fehler
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///Users/timbenning/Library/CloudStorage/OneDrive-Pers%C3%B6nlich/Webseite/Plugins/MC-Plugins/ZBenTeleport/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /Users/timbenning/Library/CloudStorage/OneDrive-Persönlich/Webseite/Plugins/MC-Plugins/ZBenTeleport/src/main/java/com/zbennoz/zbenteleport/util/HomeManager.java:40: Fehler: Symbol nicht gefunden
+          for (var perm : player.getEffectivePermissions()) {
+                                ^
+    Symbol: Methode getEffectivePermissions()
+    Ort: Variable player von Typ OfflinePlayer
+  1 Fehler
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 3s
+1 actionable task: 1 executed
+timbenning@Mac ZBenTeleport % cd ..
+timbenning@Mac MC-Plugins % cd ZBenTimber/
+timbenning@Mac ZBenTimber % ./gradlew build
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not find io.papermc.paper:paper-api:.
+     Required by:
+         root project :
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+1 actionable task: 1 executed
+timbenning@Mac ZBenTimber % 
