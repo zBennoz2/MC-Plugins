@@ -1,13 +1,13 @@
-package com.zbennoz.zbencore.ranks;
+package com.zbennoz.zbencore.teams;
 
-public final class Rank {
+public final class Team {
     private final String key;
     private final String displayName;
     private final String prefix;
     private final String color;
     private final int weight;
 
-    public Rank(String key, String displayName, String prefix, String color, int weight) {
+    public Team(String key, String displayName, String prefix, String color, int weight) {
         this.key = key;
         this.displayName = displayName;
         this.prefix = prefix;

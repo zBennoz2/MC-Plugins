@@ -1,4 +1,4 @@
-package com.zbennoz.zbencore.ranks;
+package com.zbennoz.zbencore.teams;
 
 import com.zbennoz.zbencore.util.Msg;
 import org.bukkit.Bukkit;
@@ -16,17 +16,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-public final class RankConversationManager implements Listener {
+public final class TeamConversationManager implements Listener {
 
     private static final int TIMEOUT_TICKS = 20 * 120; // 2 minutes
 
     private final JavaPlugin plugin;
-    private final RankService rankService;
+    private final TeamService teamService;
     private final Map<UUID, Session> sessions = new HashMap<>();
 
-    public RankConversationManager(JavaPlugin plugin, RankService rankService) {
+    public TeamConversationManager(JavaPlugin plugin, TeamService teamService) {
         this.plugin = plugin;
-        this.rankService = rankService;
+        this.teamService = teamService;
     }
 
     public boolean hasSession(Player player) {
@@ -35,7 +35,7 @@ public final class RankConversationManager implements Listener {
 
     public void startCreate(Player player) {
         if (hasSession(player)) {
-            player.sendMessage(Msg.pref(plugin, "&cDu bist bereits in einem Rang-Dialog. Tippe &e/cancel &cum abzubrechen."));
+            player.sendMessage(Msg.pref(plugin, "&cDu bist bereits in einem Team-Dialog. Tippe &e/cancel &cum abzubrechen."));
             return;
         }
         Session session = new Session(SessionType.CREATE, player, null);
@@ -45,11 +45,11 @@ public final class RankConversationManager implements Listener {
 
     public void startEdit(Player player, String initialKey) {
         if (hasSession(player)) {
-            player.sendMessage(Msg.pref(plugin, "&cDu bist bereits in einem Rang-Dialog. Tippe &e/cancel &cum abzubrechen."));
+            player.sendMessage(Msg.pref(plugin, "&cDu bist bereits in einem Team-Dialog. Tippe &e/cancel &cum abzubrechen."));
             return;
         }
-        if (initialKey != null && !rankService.exists(initialKey)) {
-            player.sendMessage(Msg.pref(plugin, "&cDiesen Rang gibt es nicht."));
+        if (initialKey != null && !teamService.exists(initialKey)) {
+            player.sendMessage(Msg.pref(plugin, "&cDieses Team gibt es nicht."));
             return;
         }
         Session session = new Session(SessionType.EDIT, player, initialKey);
@@ -102,38 +102,38 @@ public final class RankConversationManager implements Listener {
             scheduleTimeout();
             if (type == SessionType.CREATE) {
                 switch (step) {
-                    case 0 -> player.sendMessage(Msg.pref(plugin, "&7Erstelle neuen Rang. &eEindeutigen Schlüssel eingeben (z.B. moderator)."));
+                    case 0 -> player.sendMessage(Msg.pref(plugin, "&7Erstelle neues Team. &eEindeutigen Schlüssel eingeben (z.B. rot)."));
                     case 1 -> player.sendMessage(Msg.pref(plugin, "&7Anzeigenamen eingeben (z.B. Moderator)."));
                     case 2 -> player.sendMessage(Msg.pref(plugin, "&7Prefix eingeben (Farbcodes mit &)."));
-                    case 3 -> player.sendMessage(Msg.pref(plugin, "&7Farbe eingeben (z.B. GREEN oder #00FF00)."));
+                    case 3 -> player.sendMessage(Msg.pref(plugin, "&7Farbe eingeben (z.B. GREEN)."));
                     case 4 -> player.sendMessage(Msg.pref(plugin, "&7Priorität/Weight eingeben (Zahl, höher = wichtiger)."));
                     default -> finishCreate();
                 }
             } else {
-                Rank current = safeRank();
+                Team current = safeTeam();
                 if (current == null) {
-                    endSession(player, "&cRang nicht gefunden. Dialog beendet.");
+                    endSession(player, "&cTeam nicht gefunden. Dialog beendet.");
                     return;
                 }
                 switch (step) {
                     case 0 -> {
-                        String list = String.join(", ", rankService.listSorted().stream().map(Rank::getKey).toList());
-                        player.sendMessage(Msg.pref(plugin, "&7Welchen Rang bearbeiten? Vorhandene Keys: &e" + (list.isEmpty() ? "-" : list)));
+                        String list = String.join(", ", teamService.listSorted().stream().map(Team::getKey).toList());
+                        player.sendMessage(Msg.pref(plugin, "&7Welches Team bearbeiten? Vorhandene Keys: &e" + (list.isEmpty() ? "&ckeine" : list)));
+                        player.sendMessage(Msg.pref(plugin, "&7Team-Key eingeben (z.B. rot)."));
+                        break;
                     }
-                    case 1 -> player.sendMessage(Msg.pref(plugin, "&7Neuer Anzeigename (leer = bleibt). Aktuell: &e" + current.getDisplayName()));
-                    case 2 -> player.sendMessage(Msg.pref(plugin, "&7Neues Prefix (leer = bleibt). Aktuell: &e" + current.getPrefix()));
-                    case 3 -> player.sendMessage(Msg.pref(plugin, "&7Neue Farbe (leer = bleibt). Aktuell: &e" + current.getColor()));
-                    case 4 -> player.sendMessage(Msg.pref(plugin, "&7Neuer Weight (Zahl, leer = bleibt). Aktuell: &e" + current.getWeight()));
+                    case 1 -> player.sendMessage(Msg.pref(plugin, "&7Neuen Anzeigenamen eingeben (leer = unverändert)."));
+                    case 2 -> player.sendMessage(Msg.pref(plugin, "&7Neuen Prefix eingeben (leer = unverändert)."));
+                    case 3 -> player.sendMessage(Msg.pref(plugin, "&7Neue Farbe eingeben (z.B. GREEN, leer = unverändert)."));
+                    case 4 -> player.sendMessage(Msg.pref(plugin, "&7Neue Priorität/Weight eingeben (leer = unverändert)."));
                     default -> finishEdit();
                 }
             }
         }
 
         void handleInput(String input) {
-            scheduleTimeout();
-
-            if ("/cancel".equalsIgnoreCase(input) || "cancel".equalsIgnoreCase(input)) {
-                endSession(player, "&cRang-Dialog abgebrochen.");
+            if ("cancel".equalsIgnoreCase(input)) {
+                endSession(player, "&cDialog abgebrochen.");
                 return;
             }
 
@@ -152,7 +152,7 @@ public final class RankConversationManager implements Listener {
                         player.sendMessage(Msg.pref(plugin, "&cKey darf nicht leer sein."));
                         return;
                     }
-                    if (rankService.exists(key)) {
+                    if (teamService.exists(key)) {
                         player.sendMessage(Msg.pref(plugin, "&cDiesen Key gibt es bereits."));
                         return;
                     }
@@ -175,8 +175,8 @@ public final class RankConversationManager implements Listener {
                     prompt();
                 }
                 case 3 -> {
-                    ChatColor cc = rankService.parseColor(input);
-                    this.color = rankService.normalizeColor(input);
+                    ChatColor cc = teamService.parseColor(input);
+                    this.color = teamService.normalizeColor(input);
                     player.sendMessage(Msg.pref(plugin, "&7Genutzte Farbe: " + cc + cc.name()));
                     step++;
                     prompt();
@@ -198,11 +198,11 @@ public final class RankConversationManager implements Listener {
             switch (step) {
                 case 0 -> {
                     if (input.isBlank()) {
-                        player.sendMessage(Msg.pref(plugin, "&cBitte gib einen Rang-Key ein."));
+                        player.sendMessage(Msg.pref(plugin, "&cBitte gib einen Team-Key ein."));
                         return;
                     }
-                    if (!rankService.exists(input)) {
-                        player.sendMessage(Msg.pref(plugin, "&cRang nicht gefunden."));
+                    if (!teamService.exists(input)) {
+                        player.sendMessage(Msg.pref(plugin, "&cTeam nicht gefunden."));
                         return;
                     }
                     workingKey = input;
@@ -225,8 +225,8 @@ public final class RankConversationManager implements Listener {
                 }
                 case 3 -> {
                     if (!input.isBlank()) {
-                        ChatColor cc = rankService.parseColor(input);
-                        color = rankService.normalizeColor(input);
+                        ChatColor cc = teamService.parseColor(input);
+                        color = teamService.normalizeColor(input);
                         player.sendMessage(Msg.pref(plugin, "&7Genutzte Farbe: " + cc + cc.name()));
                     }
                     step++;
@@ -253,15 +253,15 @@ public final class RankConversationManager implements Listener {
                 endSession(player, null);
                 return;
             }
-            Rank rank = new Rank(workingKey, displayName, prefix, color, weight);
-            rankService.add(rank);
-            endSession(player, "&aRang &e" + workingKey + " &awurde erstellt und gespeichert.");
+            Team team = new Team(workingKey, displayName, prefix, color, weight);
+            teamService.add(team);
+            endSession(player, "&aTeam &e" + workingKey + " &awurde erstellt und gespeichert.");
         }
 
         private void finishEdit() {
-            Rank current = safeRank();
+            Team current = safeTeam();
             if (current == null) {
-                endSession(player, "&cRang nicht mehr vorhanden.");
+                endSession(player, "&cTeam nicht mehr vorhanden.");
                 return;
             }
             String newDisplay = displayName != null ? displayName : current.getDisplayName();
@@ -269,14 +269,14 @@ public final class RankConversationManager implements Listener {
             String newColor = color != null ? color : current.getColor();
             int newWeight = weight != null ? weight : current.getWeight();
 
-            Rank updated = new Rank(current.getKey(), newDisplay, newPrefix, newColor, newWeight);
-            rankService.update(current.getKey(), updated);
-            endSession(player, "&aRang &e" + current.getKey() + " &awurde aktualisiert.");
+            Team updated = new Team(current.getKey(), newDisplay, newPrefix, newColor, newWeight);
+            teamService.update(current.getKey(), updated);
+            endSession(player, "&aTeam &e" + current.getKey() + " &awurde aktualisiert.");
         }
 
-        private Rank safeRank() {
+        private Team safeTeam() {
             if (workingKey == null) return null;
-            return rankService.get(workingKey);
+            return teamService.get(workingKey);
         }
 
         private void scheduleTimeout() {

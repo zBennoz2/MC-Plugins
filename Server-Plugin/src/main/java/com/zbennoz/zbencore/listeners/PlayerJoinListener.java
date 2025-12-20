@@ -1,6 +1,7 @@
 package com.zbennoz.zbencore.listeners;
 
 import com.zbennoz.zbencore.branding.BrandingService;
+import com.zbennoz.zbencore.teams.TeamService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,10 +13,12 @@ public final class PlayerJoinListener implements Listener {
 
     private final JavaPlugin plugin;
     private final BrandingService branding;
+    private final TeamService teamService;
 
-    public PlayerJoinListener(JavaPlugin plugin, BrandingService branding) {
+    public PlayerJoinListener(JavaPlugin plugin, BrandingService branding, TeamService teamService) {
         this.plugin = plugin;
         this.branding = branding;
+        this.teamService = teamService;
     }
 
     @EventHandler
@@ -24,6 +27,7 @@ public final class PlayerJoinListener implements Listener {
 
         // Tablist branding
         branding.applyTablist(p);
+        teamService.applyTeamDecorations(p);
 
         // Optional join hint
         var cfg = plugin.getConfig();
