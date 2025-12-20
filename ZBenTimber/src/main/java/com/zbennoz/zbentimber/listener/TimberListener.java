@@ -24,6 +24,8 @@ public class TimberListener implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
         if (event.isCancelled()) return;
+        boolean requireSneak = plugin.getConfig().getBoolean("requireSneak", true);
+        if (requireSneak && !event.getPlayer().isSneaking()) return;
         Block start = event.getBlock();
         Material type = start.getType();
         ItemStack tool = event.getPlayer().getInventory().getItemInMainHand();
