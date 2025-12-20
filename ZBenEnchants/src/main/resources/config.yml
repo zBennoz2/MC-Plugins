@@ -1,3 +1,62 @@
+general:
+  combat-tag-ms: 8000
+
+messages:
+  prefix: '<gray>[<aqua>ZBenEnchants</aqua>] '</gray>
+  usage: '<yellow>/zbenenchants givebook <player> <enchant> <level></yellow>'
+  usage-givebook: '<yellow>/zbenenchants givebook <player> <enchant> <level></yellow>'
+  reloaded: '<green>Config neu geladen.</green>'
+  no-permission: '<red>Dazu hast du keine Rechte.</red>'
+  player-not-found: '<red>Spieler nicht gefunden.</red>'
+  invalid-number: '<red>Ungültige Zahl.</red>'
+  unknown-enchant: '<red>Unbekannter Enchant.</red>'
+  book-given: '<green>Buch an {value} gegeben.</green>'
+  book-received: '<green>Du hast {value} erhalten.</green>'
+  book-applied: '<green>{value} erfolgreich angewendet.</green>'
+  book-incompatible: '<red>Dieses Item ist nicht kompatibel.</red>'
+
 enchants:
   telekinesis:
-    chance: 0.2
+    disable-while-sneaking: true
+    block-blacklist: [SPAWNER]
+  smelt:
+    whitelist-blocks: [IRON_ORE, DEEPSLATE_IRON_ORE, GOLD_ORE, DEEPSLATE_GOLD_ORE, COPPER_ORE]
+    blacklist-blocks: [ANCIENT_DEBRIS]
+  excavator:
+    radius: 1
+    max-blocks: 9
+    cooldown: 5000
+    durability-multiplier: 3
+    blacklist: [CHEST, ENDER_CHEST, TRAPPED_CHEST, SPAWNER, OBSIDIAN]
+  replant:
+    include-nether-wart: true
+  lumberjack:
+    max-blocks: 24
+    radius: 4
+    durability-multiplier: 2
+    natural-only: true
+    cooldown: 3000
+  luckyfind:
+    base-chance: 0.05
+    per-level: 0.02
+    blacklist: [SPAWNER, DRAGON_EGG]
+  guardian:
+    base-chance: 0.05
+    per-level: 0.02
+    duration-ticks: 80
+    amplifier: 0
+    cooldown: 15000
+  grapple:
+    strength: 1.0
+    max-vertical: 0.8
+    require-sneak: false
+    cooldown: 7000
+    block-during-combat: true
+  stability:
+    reduction-per-level: 0.1
+    max-reduction: 0.6
+  secondwind:
+    health-threshold: 0.2
+    regen-duration: 100
+    speed-duration: 60
+    cooldown: 60000
