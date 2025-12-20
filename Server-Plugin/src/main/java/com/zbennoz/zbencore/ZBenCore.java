@@ -2,27 +2,28 @@ package com.zbennoz.zbencore;
 
 import com.zbennoz.zbencore.branding.BrandingService;
 import com.zbennoz.zbencore.commands.AboutCommand;
-import com.zbennoz.zbencore.commands.RankCommand;
+import com.zbennoz.zbencore.commands.TeamCommand;
 import com.zbennoz.zbencore.commands.ZBenCommand;
 import com.zbennoz.zbencore.listeners.PlayerJoinListener;
-import com.zbennoz.zbencore.ranks.RankConversationManager;
-import com.zbennoz.zbencore.ranks.RankService;
+import com.zbennoz.zbencore.listeners.TeamChatListener;
+import com.zbennoz.zbencore.teams.TeamConversationManager;
+import com.zbennoz.zbencore.teams.TeamService;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ZBenCore extends JavaPlugin {
 
     private BrandingService brandingService;
-    private RankService rankService;
-    private RankConversationManager rankConversations;
+    private TeamService teamService;
+    private TeamConversationManager teamConversations;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
 
         this.brandingService = new BrandingService(this);
-        this.rankService = new RankService(this);
-        this.rankService.load();
-        this.rankConversations = new RankConversationManager(this, rankService);
+        this.teamService = new TeamService(this);
+        this.teamService.load();
+        this.teamConversations = new TeamConversationManager(this, teamService);
 
         // Commands
         var aboutCmd = getCommand("about");
@@ -37,20 +38,24 @@ public final class ZBenCore extends JavaPlugin {
             zbenCmd.setTabCompleter(zben);
         }
 
-        var rankCmd = getCommand("rank");
-        if (rankCmd != null) {
-            var rc = new RankCommand(this, rankService, rankConversations);
-            rankCmd.setExecutor(rc);
-            rankCmd.setTabCompleter(rc);
+        var teamCmd = getCommand("team");
+        if (teamCmd != null) {
+            var tc = new TeamCommand(this, teamService, teamConversations);
+            teamCmd.setExecutor(tc);
+            teamCmd.setTabCompleter(tc);
         }
 
         // Listener
-        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, brandingService), this);
-        getServer().getPluginManager().registerEvents(rankConversations, this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, brandingService, teamService), this);
+        getServer().getPluginManager().registerEvents(teamConversations, this);
+        getServer().getPluginManager().registerEvents(new TeamChatListener(teamService), this);
 
         // Apply tablist to online players on reload
         if (getConfig().getBoolean("features.tablistBranding", true)) {
-            getServer().getOnlinePlayers().forEach(brandingService::applyTablist);
+            getServer().getOnlinePlayers().forEach(player -> {
+                brandingService.applyTablist(player);
+                teamService.applyTeamDecorations(player);
+            });
         }
 
         getLogger().info("ZBenCore enabled.");
