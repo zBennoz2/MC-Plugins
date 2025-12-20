@@ -1,3 +1,4 @@
 limits:
   max: 96
 stone-vein: false
+requireSneak: true
