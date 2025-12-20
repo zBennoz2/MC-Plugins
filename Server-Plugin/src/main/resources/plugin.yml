@@ -14,6 +14,10 @@ commands:
     description: Server management commands without OP.
     usage: /zben <kick|gamerule|time|weather|whitelist>
     permission: zben.manage
+  rank:
+    description: Verwalte Chat-Ränge (Admin/OP).
+    usage: /rank <create|edit|list|reload>
+    permission: zben.ranks.manage
 
 permissions:
   zben.owner:
@@ -46,3 +50,7 @@ permissions:
     default: false
   zben.manage.whitelist:
     default: false
+
+  zben.ranks.manage:
+    default: op
+    description: Erlaubt das Erstellen/Bearbeiten von Rängen via /rank.

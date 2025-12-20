@@ -1,0 +1,6 @@
+ranks:
+  admin:
+    displayName: "Admin"
+    prefix: "&c[Admin]&r "
+    color: "RED"
+    weight: 100
