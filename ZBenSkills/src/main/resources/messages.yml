@@ -1,0 +1,6 @@
+prefix: "&b&lZBenSkills &7» "
+level-up: "&a%skill% ist jetzt Level %level%!"
+achievement: "&b[Achievement] &f%name% &7freigeschaltet!"
+not-enough-points: "&cDu hast nicht genug Skillpunkte."
+node-requirement: "&cDu benötigst %req% zuerst."
+prestige-locked: "&cDieser Knoten erfordert Prestige."

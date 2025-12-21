@@ -1,0 +1,35 @@
+# ZBenSkills default configuration
+skills:
+  max-level: 200
+  base-xp: 125
+  exponential-base: 1.18
+  softcap-start: 150
+  softcap-multiplier: 1.32
+  prestige:
+    tokens: 1
+
+anti-exploit:
+  action-cooldown-ms: 1500
+  diminish-window-seconds: 30
+  diminish-threshold: 10
+  diminish-multiplier: 0.6
+  disable-worlds:
+    - farmwelt
+  disable-spawner-mobs: true
+
+skill-tree:
+  default-node-count: 25
+  nodes:
+    # Optional manual node definitions per skill. If less than default count the plugin auto-generates the rest.
+    MINING: {}
+    WOODCUTTING: {}
+    FARMING: {}
+    FISHING: {}
+    COMBAT: {}
+    ARCHERY: {}
+    ALCHEMY: {}
+    ENCHANTING: {}
+    BUILDING: {}
+    TRADING: {}
+    EXPLORATION: {}
+    CRAFTING: {}

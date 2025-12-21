@@ -1,0 +1,16 @@
+name: ZBenSkills
+version: 1.0.0
+main: com.zbennoz.zbenskills.ZBenSkillsPlugin
+api-version: "1.21"
+authors:
+  - ZBenNoZ
+description: Progression heavy skill system with trees, achievements and prestige.
+commands:
+  skills:
+    description: Open the skill menu.
+    usage: /skills [challenges|achievements|prestige]
+    aliases: [skill, ability]
+permissions:
+  zbenskills.use:
+    default: true
+    description: Allows opening the skills menu.

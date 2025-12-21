@@ -1,0 +1,103 @@
+achievements:
+  miner-50:
+    name: Tief unten
+    description: Erreiche Level 50 in Mining.
+    skill: MINING
+    goal: 50
+    skill-points: 3
+  miner-100:
+    name: Meister der Adern
+    description: Erreiche Level 100 in Mining.
+    skill: MINING
+    goal: 100
+    skill-points: 4
+  lumberjack-50:
+    name: Waldläufer
+    description: Erreiche Level 50 in Woodcutting.
+    skill: WOODCUTTING
+    goal: 50
+    skill-points: 3
+  farmer-75:
+    name: Feldherr
+    description: Erreiche Level 75 in Farming.
+    skill: FARMING
+    goal: 75
+    skill-points: 3
+  fisher-50:
+    name: Seefest
+    description: Erreiche Level 50 in Fishing.
+    skill: FISHING
+    goal: 50
+    skill-points: 2
+  combat-75:
+    name: Wächter
+    description: Erreiche Level 75 in Combat.
+    skill: COMBAT
+    goal: 75
+    skill-points: 4
+  archer-60:
+    name: Präzision
+    description: Erreiche Level 60 in Archery.
+    skill: ARCHERY
+    goal: 60
+    skill-points: 3
+  alchemy-40:
+    name: Destilliert
+    description: Erreiche Level 40 in Alchemy.
+    skill: ALCHEMY
+    goal: 40
+    skill-points: 2
+  enchanting-60:
+    name: Funkelnd
+    description: Erreiche Level 60 in Enchanting.
+    skill: ENCHANTING
+    goal: 60
+    skill-points: 2
+  builder-50:
+    name: Architekt
+    description: Erreiche Level 50 in Building.
+    skill: BUILDING
+    goal: 50
+    skill-points: 3
+  trader-40:
+    name: Verhandler
+    description: Erreiche Level 40 in Trading.
+    skill: TRADING
+    goal: 40
+    skill-points: 2
+  explorer-50:
+    name: Weltenbummler
+    description: Erreiche Level 50 in Exploration.
+    skill: EXPLORATION
+    goal: 50
+    skill-points: 2
+  crafter-60:
+    name: Serienfertigung
+    description: Erreiche Level 60 in Crafting.
+    skill: CRAFTING
+    goal: 60
+    skill-points: 3
+
+challenges:
+  daily:
+    mining:
+      skill: MINING
+      goal: 50
+      reward: 1
+    combat:
+      skill: COMBAT
+      goal: 25
+      reward: 1
+    crafting:
+      skill: CRAFTING
+      goal: 30
+      reward: 1
+  weekly:
+    builder:
+      skill: BUILDING
+      goal: 400
+      reward: 4
+    explorer:
+      skill: EXPLORATION
+      goal: 300
+      reward: 4
