@@ -1,6 +1,0 @@
-teams:
-  admin:
-    displayName: "Admin"
-    prefix: "&c[Team Admin]&r "
-    color: "RED"
-    weight: 100
