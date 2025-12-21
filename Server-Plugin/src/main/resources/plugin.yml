@@ -1,56 +1,59 @@
-name: ZBenCore
-version: 1.0.0
-main: com.zbennoz.zbencore.ZBenCore
+name: ZBenCityJobs
+version: 0.1.0
+main: com.zbennoz.zbencityjobs.ZBenCityJobs
 api-version: "1.21"
 author: ZBenNoZ
-description: Core plugin for branding + lightweight management without OP.
-
+description: Marketplace, jobs, companies and cities with escrow protection.
+softdepend:
+  - Vault
 commands:
-  about:
-    description: Shows server host/branding information.
-    usage: /about
-    permission: zben.about
-  zben:
-    description: Server management commands without OP.
-    usage: /zben <kick|gamerule|time|weather|whitelist>
-    permission: zben.manage
-  team:
-    description: Verwalte Chat-Teams (Admin/OP).
-    usage: /team <create|edit|list|reload|set|clear>
-    permission: zben.teams.manage
-
+  jobs:
+    description: Manage jobs and open the job board.
+    usage: /jobs
+    permission: zbencityjobs.jobs
+  market:
+    description: Open the marketplace GUI.
+    usage: /market
+    permission: zbencityjobs.market
+  company:
+    description: Manage companies.
+    usage: /company
+    permission: zbencityjobs.company
+  city:
+    description: City administration commands.
+    usage: /city
+    permission: zbencityjobs.city
 permissions:
-  zben.owner:
-    description: Owner rank - has all ZBenCore permissions.
-    default: false
-    children:
-      zben.about: true
-      zben.manage: true
-      zben.manage.kick: true
-      zben.manage.gamerule: true
-      zben.manage.time: true
-      zben.manage.weather: true
-      zben.manage.whitelist: true
-
-  zben.about:
-    default: true
-    description: Allows using /about.
-
-  zben.manage:
-    default: false
-    description: Base permission for /zben.
-
-  zben.manage.kick:
-    default: false
-  zben.manage.gamerule:
-    default: false
-  zben.manage.time:
-    default: false
-  zben.manage.weather:
-    default: false
-  zben.manage.whitelist:
-    default: false
-
-  zben.teams.manage:
+  zbencityjobs.admin:
     default: op
-    description: Erlaubt das Erstellen/Bearbeiten von Teams via /team.
+    children:
+      zbencityjobs.jobs.*: true
+      zbencityjobs.market.*: true
+      zbencityjobs.company.*: true
+      zbencityjobs.city.*: true
+  zbencityjobs.jobs:
+    default: true
+  zbencityjobs.jobs.create:
+    default: true
+  zbencityjobs.jobs.list:
+    default: true
+  zbencityjobs.jobs.take:
+    default: true
+  zbencityjobs.jobs.submit:
+    default: true
+  zbencityjobs.jobs.cancel:
+    default: true
+  zbencityjobs.market:
+    default: true
+  zbencityjobs.market.sell:
+    default: true
+  zbencityjobs.market.buy:
+    default: true
+  zbencityjobs.company:
+    default: true
+  zbencityjobs.company.manage:
+    default: op
+  zbencityjobs.city:
+    default: op
+  zbencityjobs.city.admin:
+    default: op
