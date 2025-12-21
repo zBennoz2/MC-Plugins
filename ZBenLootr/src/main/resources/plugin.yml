@@ -1,0 +1,14 @@
+name: ZBenLootr
+main: com.zbennoz.zbenlootr.ZBenLootrPlugin
+version: 1.0.0
+author: zbennoz
+api-version: '1.21'
+commands:
+  zbenlootr:
+    description: Reload or view info for ZBenLootr
+    usage: /zbenlootr <reload|info>
+    permission: zbenlootr.admin
+permissions:
+  zbenlootr.admin:
+    description: Allows administration of ZBenLootr
+    default: op

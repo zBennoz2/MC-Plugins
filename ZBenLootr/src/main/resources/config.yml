@@ -1,0 +1,22 @@
+storage: SQLITE
+mysql:
+  host: localhost
+  port: 3306
+  database: zbenlootr
+  user: root
+  password: password
+
+cache:
+  maxEntries: 10000
+  expireSeconds: 600
+
+containers:
+  enabledTypes:
+    - CHEST
+    - BARREL
+  detectDoubleChest: true
+
+loot:
+  mode: VANILLA_LOOTTABLE
+  vanillaLootTable: minecraft:chests/simple_dungeon
+  seedMode: PER_PLAYER
