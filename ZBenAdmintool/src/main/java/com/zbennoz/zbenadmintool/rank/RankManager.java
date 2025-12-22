@@ -28,10 +28,15 @@ public class RankManager {
     private final Database database;
     private final Map<String, Rank> ranks = new HashMap<>();
     private final Map<UUID, String> playerRanks = new HashMap<>();
+    private RankPermissionBridge permissionBridge;
 
     public RankManager(ZBenAdmintool plugin, Database database) {
         this.plugin = plugin;
         this.database = database;
+    }
+
+    public void setPermissionBridge(RankPermissionBridge permissionBridge) {
+        this.permissionBridge = permissionBridge;
     }
 
     public void init() {
@@ -48,6 +53,38 @@ public class RankManager {
             createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "");
             createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "");
             createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "");
+            applyDefaultPermissions();
+        }
+    }
+
+    private void applyDefaultPermissions() {
+        addDefaultPermissions("Owner", List.of(
+                "zbenadmintool.*",
+                "minecraft.command.kick",
+                "minecraft.command.ban",
+                "minecraft.command.unban"
+        ));
+        addDefaultPermissions("Admin", List.of(
+                "zbenadmintool.*",
+                "minecraft.command.kick",
+                "minecraft.command.ban",
+                "minecraft.command.unban"
+        ));
+        addDefaultPermissions("Moderator", List.of(
+                "zbenadmintool.inspect",
+                "zbenadmintool.vanish",
+                "minecraft.command.kick",
+                "minecraft.command.ban"
+        ));
+        addDefaultPermissions("Supporter", List.of(
+                "zbenadmintool.inspect",
+                "minecraft.command.kick"
+        ));
+    }
+
+    private void addDefaultPermissions(String rankName, List<String> permissions) {
+        for (String permission : permissions) {
+            addPermission(rankName, permission);
         }
     }
 
@@ -118,6 +155,10 @@ public class RankManager {
     }
 
     public boolean deleteRank(String name) {
+        List<UUID> affectedPlayers = playerRanks.entrySet().stream()
+                .filter(entry -> entry.getValue().equalsIgnoreCase(name))
+                .map(Map.Entry::getKey)
+                .toList();
         try (Connection connection = database.openConnection()) {
             try (PreparedStatement perm = connection.prepareStatement("DELETE FROM rank_permissions WHERE rank_name = ?")) {
                 perm.setString(1, name);
@@ -134,10 +175,23 @@ public class RankManager {
             ranks.remove(name.toLowerCase(Locale.ROOT));
             playerRanks.entrySet().removeIf(entry -> entry.getValue().equalsIgnoreCase(name));
             refreshAllTeams();
+            reapplyAfterDeletion(affectedPlayers);
             return true;
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Rang nicht löschen: " + e.getMessage());
             return false;
+        }
+    }
+
+    private void reapplyAfterDeletion(List<UUID> affectedPlayers) {
+        if (permissionBridge == null) {
+            return;
+        }
+        for (UUID uuid : affectedPlayers) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                permissionBridge.applyPermissions(player);
+            }
         }
     }
 
@@ -163,6 +217,9 @@ public class RankManager {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 refreshPlayerTeam(player);
+                if (permissionBridge != null) {
+                    permissionBridge.applyPermissions(player);
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Spieler-Rang nicht speichern: " + e.getMessage());
@@ -178,6 +235,9 @@ public class RankManager {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 refreshPlayerTeam(player);
+                if (permissionBridge != null) {
+                    permissionBridge.applyPermissions(player);
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Spieler-Rang nicht entfernen: " + e.getMessage());
@@ -203,6 +263,7 @@ public class RankManager {
             if (rank != null) {
                 rank.getPermissions().add(permission);
             }
+            reapplyPermissions(rankName);
             return true;
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Permission nicht hinzufügen: " + e.getMessage());
@@ -220,6 +281,7 @@ public class RankManager {
             if (rank != null) {
                 rank.getPermissions().remove(permission);
             }
+            reapplyPermissions(rankName);
             return true;
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Permission nicht entfernen: " + e.getMessage());
@@ -229,7 +291,18 @@ public class RankManager {
 
     public boolean hasRankPermission(Player player, String permission) {
         Rank rank = getPlayerRank(player);
-        return rank != null && rank.getPermissions().stream().anyMatch(p -> p.equalsIgnoreCase(permission));
+        return rank != null && rank.getPermissions().stream().anyMatch(p -> matchesPermission(p, permission));
+    }
+
+    private boolean matchesPermission(String rankPermission, String requested) {
+        if (rankPermission.equalsIgnoreCase(requested)) {
+            return true;
+        }
+        if (rankPermission.endsWith(".*")) {
+            String prefix = rankPermission.substring(0, rankPermission.length() - 2).toLowerCase(Locale.ROOT);
+            return requested.toLowerCase(Locale.ROOT).startsWith(prefix);
+        }
+        return false;
     }
 
     public void refreshPlayerTeam(Player player) {
@@ -325,6 +398,18 @@ public class RankManager {
                 .sorted(Comparator.comparingInt(Rank::getPriority).reversed())
                 .map(Rank::getName)
                 .toList();
+    }
+
+    private void reapplyPermissions(String rankName) {
+        if (permissionBridge == null) {
+            return;
+        }
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            Rank current = getPlayerRank(player);
+            if (current != null && current.getName().equalsIgnoreCase(rankName)) {
+                permissionBridge.applyPermissions(player);
+            }
+        });
     }
 
     private String createTeamName(Rank rank) {

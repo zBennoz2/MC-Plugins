@@ -17,6 +17,8 @@ import com.zbennoz.zbenadmintool.player.AdminModeManager;
 import com.zbennoz.zbenadmintool.player.TabBrandingListener;
 import com.zbennoz.zbenadmintool.player.VanishManager;
 import com.zbennoz.zbenadmintool.rank.RankManager;
+import com.zbennoz.zbenadmintool.rank.RankPermissionBridge;
+import com.zbennoz.zbenadmintool.rank.RankPermissionListener;
 import com.zbennoz.zbenadmintool.storage.Database;
 import com.zbennoz.zbenadmintool.text.MessageService;
 import com.zbennoz.zbenadmintool.util.OfflineInventoryService;
@@ -29,6 +31,7 @@ public class ZBenAdmintool extends JavaPlugin {
     private MessageService messages;
     private Database database;
     private RankManager rankManager;
+    private RankPermissionBridge rankPermissionBridge;
     private PermissionResolver permissionResolver;
     private VanishManager vanishManager;
     private AdminModeManager adminModeManager;
@@ -45,6 +48,8 @@ public class ZBenAdmintool extends JavaPlugin {
         this.messages = new MessageService(this);
         this.database = new Database(this);
         this.rankManager = new RankManager(this, database);
+        this.rankPermissionBridge = new RankPermissionBridge(this, rankManager);
+        this.rankManager.setPermissionBridge(rankPermissionBridge);
         this.permissionResolver = new PermissionResolver(rankManager);
         this.vanishManager = new VanishManager(this, permissionResolver);
         this.adminModeManager = new AdminModeManager(this, vanishManager, messages);
@@ -63,6 +68,7 @@ public class ZBenAdmintool extends JavaPlugin {
             TabBrandingListener.applyBranding(this, player);
             vanishManager.refreshVisibility(player);
             rankManager.refreshPlayerTeam(player);
+            rankPermissionBridge.applyPermissions(player);
         });
     }
 
@@ -85,12 +91,14 @@ public class ZBenAdmintool extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new AdminMenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(inspectorListener, this);
         Bukkit.getPluginManager().registerEvents(chatInputListener, this);
+        Bukkit.getPluginManager().registerEvents(new RankPermissionListener(this), this);
     }
 
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
         adminModeManager.disableAll();
+        Bukkit.getOnlinePlayers().forEach(rankPermissionBridge::clear);
         database.close();
     }
 
@@ -104,6 +112,10 @@ public class ZBenAdmintool extends JavaPlugin {
 
     public RankManager getRankManager() {
         return rankManager;
+    }
+
+    public RankPermissionBridge getRankPermissionBridge() {
+        return rankPermissionBridge;
     }
 
     public PermissionResolver getPermissionResolver() {
