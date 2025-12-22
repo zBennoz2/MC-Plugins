@@ -14,6 +14,7 @@ import com.zbennoz.zbencityjobs.repository.*;
 import com.zbennoz.zbencityjobs.service.*;
 import com.zbennoz.zbencityjobs.storage.DatabaseManager;
 import com.zbennoz.zbencityjobs.util.MessageService;
+import com.zbennoz.zbencityjobs.util.DisplayManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,6 +29,7 @@ public class ZBenCityJobs extends JavaPlugin {
     private CompanyService companyService;
     private CityService cityService;
     private JobCreationManager jobCreationManager;
+    private DisplayManager displayManager;
 
     @Override
     public void onEnable() {
@@ -81,6 +83,9 @@ public class ZBenCityJobs extends JavaPlugin {
         jobService.loadCache();
         marketService.loadCache();
 
+        displayManager = new DisplayManager(this, coinService, cityService, companyService, jobService);
+        displayManager.start();
+
         JobBoardGUI jobBoardGUI = new JobBoardGUI(jobService, messages, coinService, getConfig().getInt("gui.job-board-size", 54));
         MarketGUI marketGUI = new MarketGUI(marketService, coinService, getConfig().getInt("gui.market-size", 54));
 
@@ -92,12 +97,15 @@ public class ZBenCityJobs extends JavaPlugin {
         getCommand("coins").setExecutor(coinsCommand);
         getCommand("coins").setTabCompleter(coinsCommand);
 
-        Bukkit.getPluginManager().registerEvents(new CoinAccountListener(coinService), this);
+        Bukkit.getPluginManager().registerEvents(new CoinAccountListener(coinService, displayManager), this);
         Bukkit.getPluginManager().registerEvents(new InventoryListener(jobBoardGUI, marketGUI, jobService, marketService, coinService, messages), this);
         Bukkit.getPluginManager().registerEvents(new JobCreationListener(jobCreationManager, jobService, messages, coinService), this);
 
         // Ensure balances are available for players that are online during /reload.
-        Bukkit.getOnlinePlayers().forEach(player -> coinService.loadAccount(player.getUniqueId()));
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            coinService.loadAccount(player.getUniqueId());
+            displayManager.updateDisplays(player);
+        });
 
         getLogger().info("ZBenCityJobs enabled successfully.");
     }

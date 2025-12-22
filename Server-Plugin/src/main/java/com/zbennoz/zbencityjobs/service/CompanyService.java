@@ -57,6 +57,14 @@ public class CompanyService {
         }
     }
 
+    public Optional<Company> findForPlayer(UUID uuid) {
+        try {
+            return repository.findByMember(uuid);
+        } catch (SQLException e) {
+            return Optional.empty();
+        }
+    }
+
     public boolean invite(Company company, Player actor, UUID target) {
         if (!company.getOwner().equals(actor.getUniqueId())) return false;
         company.getMembers().put(target, CompanyRole.MEMBER);

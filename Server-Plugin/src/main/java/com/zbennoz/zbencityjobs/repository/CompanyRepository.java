@@ -84,6 +84,24 @@ public class CompanyRepository {
         return Optional.empty();
     }
 
+    public Optional<Company> findByMember(UUID member) throws SQLException {
+        String sql = "SELECT c.* FROM companies c " +
+                "LEFT JOIN company_members m ON c.id = m.company_id " +
+                "WHERE c.owner_uuid=? OR m.member_uuid=?";
+        try (Connection connection = database.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, member.toString());
+            ps.setString(2, member.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Company company = new Company(rs.getInt("id"), rs.getString("name"), UUID.fromString(rs.getString("owner_uuid")));
+                loadMembers(company);
+                return Optional.of(company);
+            }
+        }
+        return Optional.empty();
+    }
+
     public void upsertMember(int companyId, UUID uuid, CompanyRole role) throws SQLException {
         String sql = "INSERT INTO company_members(company_id, member_uuid, role) VALUES(?,?,?) " +
                 "ON CONFLICT(company_id, member_uuid) DO UPDATE SET role=excluded.role";
