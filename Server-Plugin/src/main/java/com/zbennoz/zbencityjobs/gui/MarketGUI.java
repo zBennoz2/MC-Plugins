@@ -2,6 +2,7 @@ package com.zbennoz.zbencityjobs.gui;
 
 import com.zbennoz.zbencityjobs.model.Listing;
 import com.zbennoz.zbencityjobs.service.MarketService;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -14,11 +15,13 @@ import java.util.*;
 
 public class MarketGUI {
     private final MarketService marketService;
+    private final CoinService coinService;
     private final int size;
     private final Map<UUID, Map<Integer, Integer>> openListings = new HashMap<>();
 
-    public MarketGUI(MarketService marketService, int size) {
+    public MarketGUI(MarketService marketService, CoinService coinService, int size) {
         this.marketService = marketService;
+        this.coinService = coinService;
         this.size = size;
     }
 
@@ -31,7 +34,7 @@ public class MarketGUI {
             ItemStack display = listing.getItem().clone();
             ItemMeta meta = display.getItemMeta();
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-            lore.add("§7Preis: §a$" + listing.getPrice());
+            lore.add("§7Preis: §a" + coinService.formatAmount(listing.getPrice()));
             lore.add("§7Anbieter: §f" + listing.getSeller());
             meta.setLore(lore);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);

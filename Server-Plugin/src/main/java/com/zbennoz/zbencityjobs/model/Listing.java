@@ -8,11 +8,11 @@ import java.util.UUID;
 public class Listing {
     private int id;
     private final UUID seller;
-    private final double price;
+    private final long price;
     private final ItemStack item;
     private final long createdAt;
 
-    public Listing(int id, UUID seller, double price, ItemStack item, long createdAt) {
+    public Listing(int id, UUID seller, long price, ItemStack item, long createdAt) {
         this.id = id;
         this.seller = seller;
         this.price = price;
@@ -20,7 +20,7 @@ public class Listing {
         this.createdAt = createdAt;
     }
 
-    public Listing(UUID seller, double price, ItemStack item) {
+    public Listing(UUID seller, long price, ItemStack item) {
         this(0, seller, price, item, Instant.now().toEpochMilli());
     }
 
@@ -36,7 +36,7 @@ public class Listing {
         return seller;
     }
 
-    public double getPrice() {
+    public long getPrice() {
         return price;
     }
 

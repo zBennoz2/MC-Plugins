@@ -25,7 +25,7 @@ public class ListingRepository {
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "seller_uuid TEXT NOT NULL, " +
                     "item TEXT NOT NULL, " +
-                    "price REAL NOT NULL, " +
+                    "price INTEGER NOT NULL, " +
                     "created_at INTEGER NOT NULL" +
                     ")");
         }
@@ -51,7 +51,7 @@ public class ListingRepository {
              PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, listing.getSeller().toString());
             ps.setString(2, ItemSerializer.toBase64(listing.getItem()));
-            ps.setDouble(3, listing.getPrice());
+            ps.setLong(3, listing.getPrice());
             ps.setLong(4, listing.getCreatedAt());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
@@ -76,7 +76,7 @@ public class ListingRepository {
         int id = rs.getInt("id");
         UUID seller = UUID.fromString(rs.getString("seller_uuid"));
         ItemStack item = ItemSerializer.fromBase64(rs.getString("item"));
-        double price = rs.getDouble("price");
+        long price = rs.getLong("price");
         long createdAt = rs.getLong("created_at");
         return new Listing(id, seller, price, item, createdAt);
     }

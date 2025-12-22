@@ -2,6 +2,7 @@ package com.zbennoz.zbencityjobs.service;
 
 import com.zbennoz.zbencityjobs.model.City;
 import com.zbennoz.zbencityjobs.repository.CityRepository;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -11,13 +12,23 @@ import java.util.UUID;
 public class CityService {
     private final CityRepository repository;
     private final AuditService auditService;
+    private final CoinService coinService;
+    private final long creationCost;
 
-    public CityService(CityRepository repository, AuditService auditService) {
+    public CityService(CityRepository repository, AuditService auditService, CoinService coinService, long creationCost) {
         this.repository = repository;
         this.auditService = auditService;
+        this.coinService = coinService;
+        this.creationCost = creationCost;
     }
 
     public Optional<City> createCity(Player actor, String name, double defaultTax) {
+        if (creationCost > 0 && actor != null) {
+            boolean withdrawn = coinService.remove(actor.getUniqueId(), creationCost, "city-create");
+            if (!withdrawn) {
+                return Optional.empty();
+            }
+        }
         City city = new City(name, actor != null ? actor.getUniqueId() : null, defaultTax);
         try {
             int id = repository.insert(city);

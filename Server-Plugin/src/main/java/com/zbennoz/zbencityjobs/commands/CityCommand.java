@@ -37,8 +37,9 @@ public class CityCommand implements CommandExecutor {
                 if (args.length < 2) return false;
                 String name = args[1];
                 Player actor = sender instanceof Player p ? p : null;
-                cityService.createCity(actor, name, defaultTax).ifPresent(city ->
-                        sender.sendMessage(messages.get("info.city-created", Map.of("name", city.getName()))));
+                cityService.createCity(actor, name, defaultTax).ifPresentOrElse(city ->
+                        sender.sendMessage(messages.get("info.city-created", Map.of("name", city.getName()))),
+                        () -> sender.sendMessage(messages.get("errors.transaction-failed")));
                 return true;
             }
             case "mayor" -> {

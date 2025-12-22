@@ -3,6 +3,7 @@ package com.zbennoz.zbencityjobs.service;
 import com.zbennoz.zbencityjobs.ZBenCityJobs;
 import com.zbennoz.zbencityjobs.model.Listing;
 import com.zbennoz.zbencityjobs.repository.ListingRepository;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -16,15 +17,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MarketService {
     private final ZBenCityJobs plugin;
     private final ListingRepository repository;
-    private final EconomyService economyService;
+    private final CoinService coinService;
     private final AuditService auditService;
     private final boolean asyncWrites;
     private final Map<Integer, Listing> cache = new ConcurrentHashMap<>();
 
-    public MarketService(ZBenCityJobs plugin, ListingRepository repository, EconomyService economyService, AuditService auditService, boolean asyncWrites) {
+    public MarketService(ZBenCityJobs plugin, ListingRepository repository, CoinService coinService, AuditService auditService, boolean asyncWrites) {
         this.plugin = plugin;
         this.repository = repository;
-        this.economyService = economyService;
+        this.coinService = coinService;
         this.auditService = auditService;
         this.asyncWrites = asyncWrites;
     }
@@ -45,7 +46,7 @@ public class MarketService {
         return Optional.ofNullable(cache.get(id));
     }
 
-    public Optional<Listing> createListing(Player seller, ItemStack itemStack, double price) {
+    public Optional<Listing> createListing(Player seller, ItemStack itemStack, long price) {
         Listing listing = new Listing(seller.getUniqueId(), price, itemStack);
         try {
             int id = repository.insert(listing);
@@ -63,10 +64,10 @@ public class MarketService {
         Optional<Listing> optional = getListing(id);
         if (optional.isEmpty()) return false;
         Listing listing = optional.get();
-        if (!economyService.withdraw(buyer.getUniqueId(), listing.getPrice())) {
+        if (!coinService.remove(buyer.getUniqueId(), listing.getPrice(), "market-buy")) {
             return false;
         }
-        economyService.deposit(listing.getSeller(), listing.getPrice());
+        coinService.add(listing.getSeller(), listing.getPrice(), "market-sell");
         buyer.getInventory().addItem(listing.getItem());
         cache.remove(id);
         remove(id);

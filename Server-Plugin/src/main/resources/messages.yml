@@ -1,7 +1,11 @@
 prefix: "§7[§bCityJobs§7] "
 errors:
   no-permission: "§cDazu hast du keine Berechtigung."
-  vault-missing: "§cVault oder eine Economy fehlen!"
+  coins-missing: "§cDas ZBenCoins-System konnte nicht initialisiert werden."
+  invalid-amount: "§cBitte gib einen gültigen Betrag ein (1-${max})."
+  player-not-found: "§cDieser Spieler wurde nicht gefunden."
+  not-enough-coins: "§cDu hast nicht genug ${currency} (${amount})."
+  transaction-failed: "§cDie Transaktion konnte nicht durchgeführt werden."
   unknown-job: "§cJob #${id} existiert nicht."
   job-taken: "§cDer Job ist bereits vergeben."
   job-cancelled: "§cDer Job ist nicht mehr aktiv."
@@ -10,6 +14,13 @@ errors:
   escrow-required: "§cDu musst den Lohn für den Escrow hinterlegen."
   market-empty: "§7Aktuell gibt es keine Angebote."
 info:
+  coins-balance-self: "§eDu hast §a${amount} ${currency}."
+  coins-balance-other: "§e${player} hat §a${amount} ${currency}."
+  coins-paid: "§aDu hast ${amount} ${currency} an ${player} gesendet."
+  coins-received: "§aDu hast ${amount} ${currency} von ${player} erhalten."
+  coins-set: "§eKontostand von ${player} auf ${amount} ${currency} gesetzt."
+  coins-added: "§a${amount} ${currency} zu ${player} hinzugefügt."
+  coins-removed: "§e${amount} ${currency} von ${player} entfernt."
   job-created: "§aJob erstellt (#${id})."
   job-taken: "§aDu hast den Job #${id} angenommen."
   job-submitted: "§aJob wurde eingereicht."
@@ -26,5 +37,5 @@ info:
   wizard:
     type: "§eGib Jobtyp ein (delivery/service)."
     description: "§eBeschreibe den Job."
-    reward: "§eLohn in $ angeben."
+    reward: "§eLohn in ${currency} angeben."
     delivery-item: "§eHalte das Item in der Hand und schreibe 'fertig'."
