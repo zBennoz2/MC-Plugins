@@ -30,7 +30,7 @@ public class InspectorListener implements Listener {
 
     private final ZBenAdmintool plugin;
     private final LogManager logManager;
-    private final Map<UUID, Map<String, Snapshot>> snapshots = new HashMap<>();
+    private final Map<UUID, Snapshot> snapshots = new HashMap<>();
     private final Map<UUID, Boolean> inspector = new HashMap<>();
 
     public InspectorListener(ZBenAdmintool plugin, LogManager logManager) {
@@ -59,24 +59,20 @@ public class InspectorListener implements Listener {
         Map<Material, Integer> counts = countItems(inventory);
         String containerType = resolveContainerType(inventory, location);
         Snapshot snapshot = new Snapshot(counts, location, containerType, System.currentTimeMillis());
-        String key = createSnapshotKey(event.getPlayer().getUniqueId(), location, containerType);
-        snapshots.computeIfAbsent(event.getPlayer().getUniqueId(), id -> new HashMap<>()).put(key, snapshot);
-        if (plugin.getConfig().getBoolean("logging.debug", false)) {
-            plugin.getLogger().info("Snapshot gespeichert für " + key);
-        }
+        snapshots.put(event.getPlayer().getUniqueId(), snapshot);
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
+        if (!plugin.getConfig().getBoolean("logging.containers.enabled", true)) return;
         Inventory inventory = event.getInventory();
         if (!isLoggableContainer(inventory)) return;
         Location location = getLocation(inventory);
         if (location == null) return;
-        String containerType = resolveContainerType(inventory, location);
-        String key = createSnapshotKey(event.getPlayer().getUniqueId(), location, containerType);
-        Snapshot before = snapshots.computeIfAbsent(event.getPlayer().getUniqueId(), id -> new HashMap<>()).remove(key);
-        if (before == null) return;
+        Snapshot before = snapshots.remove(event.getPlayer().getUniqueId());
+        if (before == null || !sameLocation(before.location(), location)) return;
 
+        String containerType = resolveContainerType(inventory, location);
         Map<Material, Integer> afterCounts = countItems(inventory);
         Map<Material, Integer> beforeCounts = before.counts();
         for (Material material : mergeKeys(beforeCounts, afterCounts)) {
@@ -161,6 +157,13 @@ public class InspectorListener implements Listener {
             return inventory.getType().name();
         }
         return location.getBlock().getType().name();
+    }
+
+    private boolean sameLocation(Location a, Location b) {
+        return a.getWorld().getName().equals(b.getWorld().getName())
+                && a.getBlockX() == b.getBlockX()
+                && a.getBlockY() == b.getBlockY()
+                && a.getBlockZ() == b.getBlockZ();
     }
 
     private Iterable<Material> mergeKeys(Map<Material, Integer> before, Map<Material, Integer> after) {
