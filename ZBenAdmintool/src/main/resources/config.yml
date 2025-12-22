@@ -1,0 +1,15 @@
+tab:
+  branding:
+    enabled: true
+logging:
+  blocks:
+    enabled: true
+  containers:
+    enabled: true
+  maxRowsPerQuery: 10
+inspector:
+  maxEntries: 20
+adminmode:
+  enableFly: true
+ranks:
+  defaultRank: Spieler

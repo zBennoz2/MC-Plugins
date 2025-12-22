@@ -1,0 +1,133 @@
+package com.zbennoz.zbenadmintool.logging;
+
+import com.zbennoz.zbenadmintool.ZBenAdmintool;
+import com.zbennoz.zbenadmintool.text.MessageService;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public class LogManager {
+
+    private final ZBenAdmintool plugin;
+    private final MessageService messages;
+
+    public LogManager(ZBenAdmintool plugin, MessageService messages) {
+        this.plugin = plugin;
+        this.messages = messages;
+    }
+
+    public void init() {
+        try (Connection connection = plugin.getDatabase().getConnection()) {
+            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS block_logs (player_uuid TEXT, player_name TEXT, world TEXT, x INTEGER, y INTEGER, z INTEGER, block_type TEXT, action TEXT, timestamp INTEGER);");
+            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS container_logs (player_uuid TEXT, player_name TEXT, world TEXT, x INTEGER, y INTEGER, z INTEGER, material TEXT, amount INTEGER, action TEXT, container TEXT, timestamp INTEGER);");
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Fehler beim Erstellen der Log-Tabellen: " + e.getMessage());
+        }
+    }
+
+    public void logBlock(Location location, Player player, Material block, String action) {
+        if (!plugin.getConfig().getBoolean("logging.blocks.enabled", true)) return;
+        CompletableFuture.runAsync(() -> {
+            try (Connection connection = plugin.getDatabase().getConnection();
+                 PreparedStatement st = connection.prepareStatement("INSERT INTO block_logs VALUES(?,?,?,?,?,?,?,?,?)")) {
+                st.setString(1, player.getUniqueId().toString());
+                st.setString(2, player.getName());
+                st.setString(3, location.getWorld().getName());
+                st.setInt(4, location.getBlockX());
+                st.setInt(5, location.getBlockY());
+                st.setInt(6, location.getBlockZ());
+                st.setString(7, block.name());
+                st.setString(8, action);
+                st.setLong(9, Instant.now().getEpochSecond());
+                st.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().warning("Fehler beim Speichern eines Block-Logs: " + e.getMessage());
+            }
+        });
+    }
+
+    public void logContainer(Location location, Player player, Material material, int amount, String action, String container) {
+        if (!plugin.getConfig().getBoolean("logging.containers.enabled", true)) return;
+        CompletableFuture.runAsync(() -> {
+            try (Connection connection = plugin.getDatabase().getConnection();
+                 PreparedStatement st = connection.prepareStatement("INSERT INTO container_logs VALUES(?,?,?,?,?,?,?,?,?,?,?)")) {
+                st.setString(1, player.getUniqueId().toString());
+                st.setString(2, player.getName());
+                st.setString(3, location.getWorld().getName());
+                st.setInt(4, location.getBlockX());
+                st.setInt(5, location.getBlockY());
+                st.setInt(6, location.getBlockZ());
+                st.setString(7, material.name());
+                st.setInt(8, amount);
+                st.setString(9, action);
+                st.setString(10, container);
+                st.setLong(11, Instant.now().getEpochSecond());
+                st.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().warning("Fehler beim Speichern eines Container-Logs: " + e.getMessage());
+            }
+        });
+    }
+
+    public void sendBlockLogs(Player player, Location location, int page) {
+        int limit = plugin.getConfig().getInt("logging.maxRowsPerQuery", 10);
+        int offset = (page - 1) * limit;
+        CompletableFuture.supplyAsync(() -> queryLogs(location, "block_logs", limit, offset))
+                .thenAccept(entries -> Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (entries.isEmpty()) {
+                        player.sendMessage(messages.raw("inspect.no_logs"));
+                    } else {
+                        entries.forEach(player::sendMessage);
+                    }
+                }));
+    }
+
+    public void sendContainerLogs(Player player, Location location, int page) {
+        int limit = plugin.getConfig().getInt("logging.maxRowsPerQuery", 10);
+        int offset = (page - 1) * limit;
+        CompletableFuture.supplyAsync(() -> queryLogs(location, "container_logs", limit, offset))
+                .thenAccept(entries -> Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (entries.isEmpty()) {
+                        player.sendMessage(messages.raw("inspect.no_logs"));
+                    } else {
+                        entries.forEach(player::sendMessage);
+                    }
+                }));
+    }
+
+    private List<String> queryLogs(Location location, String table, int limit, int offset) {
+        List<String> result = new ArrayList<>();
+        try (Connection connection = plugin.getDatabase().getConnection();
+             PreparedStatement st = connection.prepareStatement("SELECT * FROM " + table + " WHERE world=? AND x=? AND y=? AND z=? ORDER BY timestamp DESC LIMIT ? OFFSET ?")) {
+            st.setString(1, location.getWorld().getName());
+            st.setInt(2, location.getBlockX());
+            st.setInt(3, location.getBlockY());
+            st.setInt(4, location.getBlockZ());
+            st.setInt(5, limit);
+            st.setInt(6, offset);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                String msg;
+                if ("block_logs".equals(table)) {
+                    msg = "[Block] " + rs.getString("player_name") + " -> " + rs.getString("action") + " " + rs.getString("block_type") + " (" + rs.getLong("timestamp") + ")";
+                } else {
+                    msg = "[Container] " + rs.getString("player_name") + " -> " + rs.getString("action") + " " + rs.getInt("amount") + "x " + rs.getString("material") + " (" + rs.getLong("timestamp") + ")";
+                }
+                result.add(msg);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Fehler beim Abfragen von Logs: " + e.getMessage());
+        }
+        return result;
+    }
+}

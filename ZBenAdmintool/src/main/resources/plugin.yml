@@ -1,0 +1,42 @@
+name: ZBenAdmintool
+version: ${version}
+main: com.zbennoz.zbenadmintool.ZBenAdmintool
+author: zbennoz
+api-version: '1.21'
+commands:
+  admin:
+    description: Admin Menü
+    aliases: [admintool]
+  adminmode:
+    description: Admin Mode umschalten
+  vanish:
+    description: Vanish umschalten
+  rank:
+    description: Ränge verwalten
+  inspect:
+    description: Inspektor-Modus
+  logs:
+    description: Logs abrufen
+  offinv:
+    description: Offline Inventar öffnen
+  offec:
+    description: Offline Enderchest öffnen
+permissions:
+  zbenadmintool.admin:
+    default: op
+  zbenadmintool.adminmode:
+    default: op
+  zbenadmintool.vanish:
+    default: op
+  zbenadmintool.vanish.see:
+    default: op
+  zbenadmintool.rank:
+    default: op
+  zbenadmintool.inspect:
+    default: op
+  zbenadmintool.logs:
+    default: op
+  zbenadmintool.offinv:
+    default: op
+  zbenadmintool.offec:
+    default: op
