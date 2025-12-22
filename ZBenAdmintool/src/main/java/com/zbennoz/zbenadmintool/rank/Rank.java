@@ -1,21 +1,21 @@
 package com.zbennoz.zbenadmintool.rank;
 
-import org.bukkit.ChatColor;
-
 import java.util.HashSet;
 import java.util.Set;
 
 public class Rank {
     private final String name;
-    private final ChatColor color;
+    private final String colorText;
+    private final String legacyColor;
     private final int priority;
     private final String prefix;
     private final String suffix;
     private final Set<String> permissions = new HashSet<>();
 
-    public Rank(String name, ChatColor color, int priority, String prefix, String suffix) {
+    public Rank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix) {
         this.name = name;
-        this.color = color;
+        this.colorText = colorText;
+        this.legacyColor = legacyColor;
         this.priority = priority;
         this.prefix = prefix;
         this.suffix = suffix;
@@ -25,8 +25,12 @@ public class Rank {
         return name;
     }
 
-    public ChatColor getColor() {
-        return color;
+    public String getColorText() {
+        return colorText;
+    }
+
+    public String getLegacyColor() {
+        return legacyColor;
     }
 
     public int getPriority() {

@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +22,7 @@ public class LogManager {
 
     private final ZBenAdmintool plugin;
     private final MessageService messages;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd.MM HH:mm:ss").withZone(ZoneId.systemDefault());
 
     public LogManager(ZBenAdmintool plugin, MessageService messages) {
         this.plugin = plugin;
@@ -28,8 +31,8 @@ public class LogManager {
 
     public void init() {
         try (Connection connection = plugin.getDatabase().getConnection()) {
-            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS block_logs (player_uuid TEXT, player_name TEXT, world TEXT, x INTEGER, y INTEGER, z INTEGER, block_type TEXT, action TEXT, timestamp INTEGER);");
-            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS container_logs (player_uuid TEXT, player_name TEXT, world TEXT, x INTEGER, y INTEGER, z INTEGER, material TEXT, amount INTEGER, action TEXT, container TEXT, timestamp INTEGER);");
+            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS block_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, player_uuid TEXT, player_name TEXT, world TEXT, x INTEGER, y INTEGER, z INTEGER, block_type TEXT, action TEXT, timestamp INTEGER);");
+            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS container_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT, name TEXT, world TEXT, x INTEGER, y INTEGER, z INTEGER, container_type TEXT, action TEXT, material TEXT, amount INTEGER, ts INTEGER);");
         } catch (SQLException e) {
             plugin.getLogger().severe("Fehler beim Erstellen der Log-Tabellen: " + e.getMessage());
         }
@@ -39,7 +42,7 @@ public class LogManager {
         if (!plugin.getConfig().getBoolean("logging.blocks.enabled", true)) return;
         CompletableFuture.runAsync(() -> {
             try (Connection connection = plugin.getDatabase().getConnection();
-                 PreparedStatement st = connection.prepareStatement("INSERT INTO block_logs VALUES(?,?,?,?,?,?,?,?,?)")) {
+                 PreparedStatement st = connection.prepareStatement("INSERT INTO block_logs(player_uuid, player_name, world, x, y, z, block_type, action, timestamp) VALUES(?,?,?,?,?,?,?,?,?)")) {
                 st.setString(1, player.getUniqueId().toString());
                 st.setString(2, player.getName());
                 st.setString(3, location.getWorld().getName());
@@ -60,17 +63,17 @@ public class LogManager {
         if (!plugin.getConfig().getBoolean("logging.containers.enabled", true)) return;
         CompletableFuture.runAsync(() -> {
             try (Connection connection = plugin.getDatabase().getConnection();
-                 PreparedStatement st = connection.prepareStatement("INSERT INTO container_logs VALUES(?,?,?,?,?,?,?,?,?,?,?)")) {
+                 PreparedStatement st = connection.prepareStatement("INSERT INTO container_logs(uuid, name, world, x, y, z, container_type, action, material, amount, ts) VALUES(?,?,?,?,?,?,?,?,?,?,?)")) {
                 st.setString(1, player.getUniqueId().toString());
                 st.setString(2, player.getName());
                 st.setString(3, location.getWorld().getName());
                 st.setInt(4, location.getBlockX());
                 st.setInt(5, location.getBlockY());
                 st.setInt(6, location.getBlockZ());
-                st.setString(7, material.name());
-                st.setInt(8, amount);
-                st.setString(9, action);
-                st.setString(10, container);
+                st.setString(7, container);
+                st.setString(8, action);
+                st.setString(9, material.name());
+                st.setInt(10, amount);
                 st.setLong(11, Instant.now().getEpochSecond());
                 st.executeUpdate();
             } catch (SQLException e) {
@@ -82,7 +85,7 @@ public class LogManager {
     public void sendBlockLogs(Player player, Location location, int page) {
         int limit = plugin.getConfig().getInt("logging.maxRowsPerQuery", 10);
         int offset = (page - 1) * limit;
-        CompletableFuture.supplyAsync(() -> queryLogs(location, "block_logs", limit, offset))
+        CompletableFuture.supplyAsync(() -> queryBlockLogs(location, limit, offset))
                 .thenAccept(entries -> Bukkit.getScheduler().runTask(plugin, () -> {
                     if (entries.isEmpty()) {
                         player.sendMessage(messages.raw("inspect.no_logs"));
@@ -93,9 +96,13 @@ public class LogManager {
     }
 
     public void sendContainerLogs(Player player, Location location, int page) {
+        if (!plugin.getConfig().getBoolean("logging.containers.enabled", true)) {
+            player.sendMessage(messages.raw("inspect.containers_disabled"));
+            return;
+        }
         int limit = plugin.getConfig().getInt("logging.maxRowsPerQuery", 10);
         int offset = (page - 1) * limit;
-        CompletableFuture.supplyAsync(() -> queryLogs(location, "container_logs", limit, offset))
+        CompletableFuture.supplyAsync(() -> queryContainerLogs(location, limit, offset))
                 .thenAccept(entries -> Bukkit.getScheduler().runTask(plugin, () -> {
                     if (entries.isEmpty()) {
                         player.sendMessage(messages.raw("inspect.no_logs"));
@@ -105,10 +112,10 @@ public class LogManager {
                 }));
     }
 
-    private List<String> queryLogs(Location location, String table, int limit, int offset) {
+    private List<String> queryBlockLogs(Location location, int limit, int offset) {
         List<String> result = new ArrayList<>();
         try (Connection connection = plugin.getDatabase().getConnection();
-             PreparedStatement st = connection.prepareStatement("SELECT * FROM " + table + " WHERE world=? AND x=? AND y=? AND z=? ORDER BY timestamp DESC LIMIT ? OFFSET ?")) {
+             PreparedStatement st = connection.prepareStatement("SELECT player_name, action, block_type, timestamp FROM block_logs WHERE world=? AND x=? AND y=? AND z=? ORDER BY timestamp DESC LIMIT ? OFFSET ?")) {
             st.setString(1, location.getWorld().getName());
             st.setInt(2, location.getBlockX());
             st.setInt(3, location.getBlockY());
@@ -117,16 +124,40 @@ public class LogManager {
             st.setInt(6, offset);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                String msg;
-                if ("block_logs".equals(table)) {
-                    msg = "[Block] " + rs.getString("player_name") + " -> " + rs.getString("action") + " " + rs.getString("block_type") + " (" + rs.getLong("timestamp") + ")";
-                } else {
-                    msg = "[Container] " + rs.getString("player_name") + " -> " + rs.getString("action") + " " + rs.getInt("amount") + "x " + rs.getString("material") + " (" + rs.getLong("timestamp") + ")";
-                }
+                String time = timeFormatter.format(Instant.ofEpochSecond(rs.getLong("timestamp")));
+                String msg = "[" + time + "] " + rs.getString("player_name") + " -> " + rs.getString("action") + " " + rs.getString("block_type");
                 result.add(msg);
             }
         } catch (SQLException e) {
-            plugin.getLogger().warning("Fehler beim Abfragen von Logs: " + e.getMessage());
+            plugin.getLogger().warning("Fehler beim Abfragen von Block-Logs: " + e.getMessage());
+        }
+        return result;
+    }
+
+    private List<String> queryContainerLogs(Location location, int limit, int offset) {
+        List<String> result = new ArrayList<>();
+        try (Connection connection = plugin.getDatabase().getConnection();
+             PreparedStatement st = connection.prepareStatement("SELECT name, action, material, amount, ts FROM container_logs WHERE world=? AND x=? AND y=? AND z=? ORDER BY ts DESC LIMIT ? OFFSET ?")) {
+            st.setString(1, location.getWorld().getName());
+            st.setInt(2, location.getBlockX());
+            st.setInt(3, location.getBlockY());
+            st.setInt(4, location.getBlockZ());
+            st.setInt(5, limit);
+            st.setInt(6, offset);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                String time = timeFormatter.format(Instant.ofEpochSecond(rs.getLong("ts")));
+                String action = rs.getString("action").equalsIgnoreCase("ADD") ? "eingelagert" : "entfernt";
+                String msg = messages.raw("inspect.container_entry")
+                        .replace("%time%", time)
+                        .replace("%player%", rs.getString("name"))
+                        .replace("%amount%", String.valueOf(rs.getInt("amount")))
+                        .replace("%material%", rs.getString("material"))
+                        .replace("%action%", action);
+                result.add(msg);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Fehler beim Abfragen von Container-Logs: " + e.getMessage());
         }
         return result;
     }
