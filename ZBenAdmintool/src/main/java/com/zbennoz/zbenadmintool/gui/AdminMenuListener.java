@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Arrays;
+
 public class AdminMenuListener implements Listener {
 
     private static final NamespacedKey BUTTON_KEY = NamespacedKey.minecraft("admintool_button");
@@ -33,15 +35,22 @@ public class AdminMenuListener implements Listener {
         inv.setItem(14, button(Material.CHEST, "Offline Inventar", "offinv"));
         inv.setItem(15, button(Material.ENDER_CHEST, "Offline Enderchest", "offec"));
         inv.setItem(16, button(Material.NAME_TAG, "Ränge", "rank"));
+        inv.setItem(22, button(Material.PAPER, "Rang erstellen", "rank_create",
+                "§7Erstellt einen neuen Rang",
+                "§7Eingabe erfolgt im Chat",
+                "§7Tippe 'abbrechen' zum Stoppen"));
         player.openInventory(inv);
     }
 
-    private static ItemStack button(Material material, String name, String action) {
+    private static ItemStack button(Material material, String name, String action, String... lore) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name);
         meta.getPersistentDataContainer().set(BUTTON_KEY, PersistentDataType.STRING, action);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        if (lore != null && lore.length > 0) {
+            meta.setLore(Arrays.asList(lore));
+        }
         item.setItemMeta(meta);
         return item;
     }
@@ -77,6 +86,13 @@ public class AdminMenuListener implements Listener {
             case "offinv" -> player.performCommand("offinv " + player.getName());
             case "offec" -> player.performCommand("offec " + player.getName());
             case "rank" -> player.performCommand("rank list");
+            case "rank_create" -> {
+                if (resolver.has(player, "zbenadmintool.rank.manage")) {
+                    plugin.getChatInputListener().startSession(player);
+                } else {
+                    player.sendMessage(plugin.getMessages().raw("no_permission"));
+                }
+            }
             default -> {
             }
         }

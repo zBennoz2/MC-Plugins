@@ -32,6 +32,9 @@ permissions:
     default: op
   zbenadmintool.rank:
     default: op
+  zbenadmintool.rank.manage:
+    default: op
+    description: Ränge verwalten (Commands & GUI)
   zbenadmintool.inspect:
     default: op
   zbenadmintool.logs:

@@ -9,6 +9,7 @@ import com.zbennoz.zbenadmintool.command.RankCommand;
 import com.zbennoz.zbenadmintool.command.VanishCommand;
 import com.zbennoz.zbenadmintool.command.InspectCommand;
 import com.zbennoz.zbenadmintool.gui.AdminMenuListener;
+import com.zbennoz.zbenadmintool.gui.ChatInputListener;
 import com.zbennoz.zbenadmintool.logging.LogManager;
 import com.zbennoz.zbenadmintool.logging.InspectorListener;
 import com.zbennoz.zbenadmintool.permission.PermissionResolver;
@@ -34,6 +35,7 @@ public class ZBenAdmintool extends JavaPlugin {
     private LogManager logManager;
     private OfflineInventoryService offlineInventoryService;
     private InspectorListener inspectorListener;
+    private ChatInputListener chatInputListener;
 
     @Override
     public void onEnable() {
@@ -49,10 +51,10 @@ public class ZBenAdmintool extends JavaPlugin {
         this.logManager = new LogManager(this, messages);
         this.offlineInventoryService = new OfflineInventoryService(this, messages);
         this.inspectorListener = new InspectorListener(this, logManager);
+        this.chatInputListener = new ChatInputListener(this);
 
-        database.init();
+        database.initSchema();
         rankManager.init();
-        logManager.init();
 
         registerCommands();
         registerListeners();
@@ -82,6 +84,7 @@ public class ZBenAdmintool extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new TabBrandingListener(this), this);
         Bukkit.getPluginManager().registerEvents(new AdminMenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(inspectorListener, this);
+        Bukkit.getPluginManager().registerEvents(chatInputListener, this);
     }
 
     @Override
@@ -125,5 +128,9 @@ public class ZBenAdmintool extends JavaPlugin {
 
     public InspectorListener getInspectorListener() {
         return inspectorListener;
+    }
+
+    public ChatInputListener getChatInputListener() {
+        return chatInputListener;
     }
 }

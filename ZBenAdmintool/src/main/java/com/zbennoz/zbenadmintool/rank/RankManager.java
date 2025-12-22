@@ -13,8 +13,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -32,32 +35,25 @@ public class RankManager {
     }
 
     public void init() {
-        try (Connection connection = database.getConnection()) {
-            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS ranks (name TEXT PRIMARY KEY, color TEXT, priority INTEGER, prefix TEXT, suffix TEXT);");
-            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS player_ranks (uuid TEXT PRIMARY KEY, rank_name TEXT);");
-            connection.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS rank_permissions (rank_name TEXT, permission TEXT, PRIMARY KEY(rank_name, permission));");
-        } catch (SQLException e) {
-            plugin.getLogger().severe("Fehler beim Erstellen der Tabellen: " + e.getMessage());
-        }
         loadRanks();
-        loadPlayerRanks();
         ensureDefaults();
+        loadPlayerRanks();
         refreshAllTeams();
     }
 
     private void ensureDefaults() {
         if (ranks.isEmpty()) {
-            createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, ChatColor.DARK_RED + "[Owner] ", "");
-            createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, ChatColor.RED + "[Admin] ", "");
-            createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, ChatColor.GOLD + "[Mod] ", "");
-            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, ChatColor.GREEN + "[Sup] ", "");
+            createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, "", "");
+            createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, "", "");
+            createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "");
+            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "");
             createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "");
         }
     }
 
     private void loadRanks() {
         ranks.clear();
-        try (Connection connection = database.getConnection();
+        try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("SELECT * FROM ranks")) {
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
@@ -88,7 +84,7 @@ public class RankManager {
 
     private void loadPlayerRanks() {
         playerRanks.clear();
-        try (Connection connection = database.getConnection();
+        try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("SELECT * FROM player_ranks")) {
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
@@ -100,8 +96,11 @@ public class RankManager {
     }
 
     public boolean createRank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix) {
-        try (Connection connection = database.getConnection();
-             PreparedStatement st = connection.prepareStatement("INSERT OR REPLACE INTO ranks(name, color, priority, prefix, suffix) VALUES(?,?,?,?,?)")) {
+        if (ranks.containsKey(name.toLowerCase(Locale.ROOT))) {
+            return false;
+        }
+        try (Connection connection = database.openConnection();
+             PreparedStatement st = connection.prepareStatement("INSERT INTO ranks(name, color, priority, prefix, suffix) VALUES(?,?,?,?,?)")) {
             st.setString(1, name);
             st.setString(2, colorText);
             st.setInt(3, priority);
@@ -119,22 +118,21 @@ public class RankManager {
     }
 
     public boolean deleteRank(String name) {
-        try (Connection connection = database.getConnection()) {
-            try (PreparedStatement deletePerms = connection.prepareStatement("DELETE FROM rank_permissions WHERE rank_name = ?")) {
-                deletePerms.setString(1, name);
-                deletePerms.executeUpdate();
+        try (Connection connection = database.openConnection()) {
+            try (PreparedStatement perm = connection.prepareStatement("DELETE FROM rank_permissions WHERE rank_name = ?")) {
+                perm.setString(1, name);
+                perm.executeUpdate();
             }
-            try (PreparedStatement updatePlayers = connection.prepareStatement("UPDATE player_ranks SET rank_name = ? WHERE rank_name = ?")) {
-                updatePlayers.setString(1, plugin.getConfig().getString("ranks.defaultRank", "Spieler"));
-                updatePlayers.setString(2, name);
-                updatePlayers.executeUpdate();
+            try (PreparedStatement players = connection.prepareStatement("DELETE FROM player_ranks WHERE rank_name = ?")) {
+                players.setString(1, name);
+                players.executeUpdate();
             }
             try (PreparedStatement st = connection.prepareStatement("DELETE FROM ranks WHERE name = ?")) {
                 st.setString(1, name);
                 st.executeUpdate();
             }
             ranks.remove(name.toLowerCase(Locale.ROOT));
-            loadPlayerRanks();
+            playerRanks.entrySet().removeIf(entry -> entry.getValue().equalsIgnoreCase(name));
             refreshAllTeams();
             return true;
         } catch (SQLException e) {
@@ -144,6 +142,7 @@ public class RankManager {
     }
 
     public Rank getRank(String name) {
+        if (name == null) return null;
         return ranks.get(name.toLowerCase(Locale.ROOT));
     }
 
@@ -152,7 +151,10 @@ public class RankManager {
     }
 
     public void setPlayerRank(UUID uuid, String rankName) {
-        try (Connection connection = database.getConnection();
+        if (getRank(rankName) == null) {
+            return;
+        }
+        try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("INSERT OR REPLACE INTO player_ranks(uuid, rank_name) VALUES(?,?)")) {
             st.setString(1, uuid.toString());
             st.setString(2, rankName);
@@ -168,7 +170,7 @@ public class RankManager {
     }
 
     public void removePlayerRank(UUID uuid) {
-        try (Connection connection = database.getConnection();
+        try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("DELETE FROM player_ranks WHERE uuid = ?")) {
             st.setString(1, uuid.toString());
             st.executeUpdate();
@@ -192,7 +194,7 @@ public class RankManager {
     }
 
     public boolean addPermission(String rankName, String permission) {
-        try (Connection connection = database.getConnection();
+        try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("INSERT OR REPLACE INTO rank_permissions(rank_name, permission) VALUES(?,?)")) {
             st.setString(1, rankName);
             st.setString(2, permission);
@@ -209,7 +211,7 @@ public class RankManager {
     }
 
     public boolean removePermission(String rankName, String permission) {
-        try (Connection connection = database.getConnection();
+        try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("DELETE FROM rank_permissions WHERE rank_name = ? AND permission = ?")) {
             st.setString(1, rankName);
             st.setString(2, permission);
@@ -240,16 +242,13 @@ public class RankManager {
             return;
         }
 
-        String teamName = ("rank_" + rank.getName()).replaceAll("[^A-Za-z0-9_]", "");
-        if (teamName.length() > 16) {
-            teamName = teamName.substring(0, 16);
-        }
+        String teamName = createTeamName(rank);
         Team team = scoreboard.getTeam(teamName);
         if (team == null) {
             team = scoreboard.registerNewTeam(teamName);
         }
         team.setPrefix(rank.getPrefix());
-        team.setSuffix(rank.getLegacyColor() + " [" + rank.getName() + "]");
+        team.setSuffix(" " + rank.getLegacyColor() + "[" + rank.getName() + "]");
         team.addEntry(player.getName());
         player.setPlayerListName(rank.getLegacyColor() + player.getName() + ChatColor.RESET + " [" + rank.getName() + "]");
     }
@@ -259,6 +258,19 @@ public class RankManager {
         scoreboard.getTeams().stream()
                 .filter(team -> team.getName().startsWith("rank_"))
                 .forEach(Team::unregister);
+
+        List<Rank> sorted = ranks.values().stream()
+                .sorted(Comparator.comparingInt(Rank::getPriority).reversed())
+                .toList();
+        for (Rank rank : sorted) {
+            String teamName = createTeamName(rank);
+            Team team = scoreboard.getTeam(teamName);
+            if (team == null) {
+                team = scoreboard.registerNewTeam(teamName);
+            }
+            team.setPrefix(rank.getPrefix());
+            team.setSuffix(" " + rank.getLegacyColor() + "[" + rank.getName() + "]");
+        }
 
         Bukkit.getOnlinePlayers().forEach(this::refreshPlayerTeam);
     }
@@ -299,5 +311,29 @@ public class RankManager {
                 return false;
             }
         }
+    }
+
+    public boolean isValidRankName(String name) {
+        if (name == null) {
+            return false;
+        }
+        return name.length() >= 3 && name.length() <= 24 && name.matches("[A-Za-z0-9_-]+");
+    }
+
+    public List<String> getRankNames() {
+        return new ArrayList<>(ranks.values()).stream()
+                .sorted(Comparator.comparingInt(Rank::getPriority).reversed())
+                .map(Rank::getName)
+                .toList();
+    }
+
+    private String createTeamName(Rank rank) {
+        String priorityPart = String.format("%04d", Math.max(0, 9999 - rank.getPriority()));
+        String hash = Integer.toHexString(rank.getName().hashCode());
+        String name = ("rank_" + priorityPart + "_" + hash);
+        if (name.length() > 16) {
+            name = name.substring(0, 16);
+        }
+        return name;
     }
 }
