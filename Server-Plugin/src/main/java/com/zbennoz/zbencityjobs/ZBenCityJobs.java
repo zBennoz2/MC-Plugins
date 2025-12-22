@@ -29,7 +29,13 @@ public class ZBenCityJobs extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Ensure plugin data folder exists and provide a visible startup log.
+        if (!getDataFolder().exists() && !getDataFolder().mkdirs()) {
+            getLogger().warning("Could not create plugin data folder");
+        }
         saveDefaultConfig();
+        getLogger().info("ZBenCityJobs is enabling...");
+
         messages = new MessageService(this);
         messages.load();
 
@@ -79,6 +85,8 @@ public class ZBenCityJobs extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new InventoryListener(jobBoardGUI, marketGUI, jobService, marketService, messages), this);
         Bukkit.getPluginManager().registerEvents(new JobCreationListener(jobCreationManager, jobService, messages), this);
+
+        getLogger().info("ZBenCityJobs enabled successfully.");
     }
 
     @Override
@@ -86,5 +94,6 @@ public class ZBenCityJobs extends JavaPlugin {
         if (databaseManager != null) {
             databaseManager.close();
         }
+        getLogger().info("ZBenCityJobs disabled.");
     }
 }

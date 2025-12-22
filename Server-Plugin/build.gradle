@@ -27,7 +27,13 @@ dependencies {
     implementation 'org.xerial:sqlite-jdbc:3.46.0.0'
 }
 
-tasks.jar {
+// Do not ship plugin resources in the sources jar so it cannot be mistaken for a plugin on the server.
+tasks.named('sourcesJar') {
+    exclude('plugin.yml', 'config.yml', 'messages.yml')
+}
+
+// Package runtime dependencies (SQLite) into the plugin jar so it can run standalone on the server.
+tasks.named('jar') {
     from({
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     })
