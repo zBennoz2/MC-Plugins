@@ -3,6 +3,7 @@ package com.zbennoz.zbencityjobs.service;
 import com.zbennoz.zbencityjobs.model.Company;
 import com.zbennoz.zbencityjobs.model.CompanyRole;
 import com.zbennoz.zbencityjobs.repository.CompanyRepository;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -12,13 +13,23 @@ import java.util.UUID;
 public class CompanyService {
     private final CompanyRepository repository;
     private final AuditService auditService;
+    private final CoinService coinService;
+    private final long creationCost;
 
-    public CompanyService(CompanyRepository repository, AuditService auditService) {
+    public CompanyService(CompanyRepository repository, AuditService auditService, CoinService coinService, long creationCost) {
         this.repository = repository;
         this.auditService = auditService;
+        this.coinService = coinService;
+        this.creationCost = creationCost;
     }
 
     public Optional<Company> createCompany(Player creator, String name) {
+        if (creationCost > 0 && creator != null) {
+            boolean withdrawn = coinService.remove(creator.getUniqueId(), creationCost, "company-create");
+            if (!withdrawn) {
+                return Optional.empty();
+            }
+        }
         Company company = new Company(name, creator.getUniqueId());
         try {
             int id = repository.insert(company);

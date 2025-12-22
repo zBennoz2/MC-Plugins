@@ -28,7 +28,7 @@ public class JobRepository {
                     "type TEXT NOT NULL, " +
                     "requester_uuid TEXT NOT NULL, " +
                     "worker_uuid TEXT, " +
-                    "reward REAL NOT NULL, " +
+                    "reward INTEGER NOT NULL, " +
                     "escrow INTEGER NOT NULL, " +
                     "status TEXT NOT NULL, " +
                     "description TEXT, " +
@@ -59,7 +59,7 @@ public class JobRepository {
             ps.setString(1, job.getType().name());
             ps.setString(2, job.getRequester().toString());
             ps.setString(3, job.getWorker() != null ? job.getWorker().toString() : null);
-            ps.setDouble(4, job.getReward());
+            ps.setLong(4, job.getReward());
             ps.setInt(5, job.isEscrow() ? 1 : 0);
             ps.setString(6, job.getStatus().name());
             ps.setString(7, job.getDescription());
@@ -96,7 +96,7 @@ public class JobRepository {
         UUID requester = UUID.fromString(rs.getString("requester_uuid"));
         String workerRaw = rs.getString("worker_uuid");
         UUID worker = workerRaw != null ? UUID.fromString(workerRaw) : null;
-        double reward = rs.getDouble("reward");
+        long reward = rs.getLong("reward");
         boolean escrow = rs.getInt("escrow") == 1;
         JobStatus status = JobStatus.valueOf(rs.getString("status"));
         String description = rs.getString("description");

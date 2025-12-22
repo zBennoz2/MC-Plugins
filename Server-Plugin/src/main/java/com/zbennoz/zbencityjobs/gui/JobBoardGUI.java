@@ -3,6 +3,7 @@ package com.zbennoz.zbencityjobs.gui;
 import com.zbennoz.zbencityjobs.model.Job;
 import com.zbennoz.zbencityjobs.model.JobStatus;
 import com.zbennoz.zbencityjobs.service.JobService;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import com.zbennoz.zbencityjobs.util.MessageService;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -17,12 +18,14 @@ import java.util.*;
 public class JobBoardGUI {
     private final JobService jobService;
     private final MessageService messages;
+    private final CoinService coinService;
     private final int size;
     private final Map<UUID, Map<Integer, Integer>> openJobIndex = new HashMap<>();
 
-    public JobBoardGUI(JobService jobService, MessageService messages, int size) {
+    public JobBoardGUI(JobService jobService, MessageService messages, CoinService coinService, int size) {
         this.jobService = jobService;
         this.messages = messages;
+        this.coinService = coinService;
         this.size = size;
     }
 
@@ -38,7 +41,7 @@ public class JobBoardGUI {
             meta.setDisplayName("§bJob #" + job.getId());
             List<String> lore = new ArrayList<>();
             lore.add("§7Typ: §f" + job.getType());
-            lore.add("§7Lohn: §a$" + job.getReward());
+            lore.add("§7Lohn: §a" + coinService.formatAmount(job.getReward()));
             lore.add("§7Status: §f" + job.getStatus());
             lore.add("§7Beschreibung: §f" + job.getDescription());
             if (job.isEscrow()) lore.add("§aEscrow gesichert");

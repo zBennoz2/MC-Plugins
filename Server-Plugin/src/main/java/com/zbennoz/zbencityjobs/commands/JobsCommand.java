@@ -6,6 +6,7 @@ import com.zbennoz.zbencityjobs.model.JobCreationSession;
 import com.zbennoz.zbencityjobs.model.JobStatus;
 import com.zbennoz.zbencityjobs.service.JobCreationManager;
 import com.zbennoz.zbencityjobs.service.JobService;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import com.zbennoz.zbencityjobs.util.MessageService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -20,12 +21,14 @@ public class JobsCommand implements CommandExecutor {
     private final JobService jobService;
     private final JobCreationManager creationManager;
     private final MessageService messages;
+    private final CoinService coinService;
 
-    public JobsCommand(JobBoardGUI jobBoardGUI, JobService jobService, JobCreationManager creationManager, MessageService messages) {
+    public JobsCommand(JobBoardGUI jobBoardGUI, JobService jobService, JobCreationManager creationManager, MessageService messages, CoinService coinService) {
         this.jobBoardGUI = jobBoardGUI;
         this.jobService = jobService;
         this.creationManager = creationManager;
         this.messages = messages;
+        this.coinService = coinService;
     }
 
     @Override
@@ -79,6 +82,6 @@ public class JobsCommand implements CommandExecutor {
     }
 
     private String format(Job job) {
-        return "#" + job.getId() + " " + job.getType() + " " + job.getStatus() + " $" + job.getReward();
+        return "#" + job.getId() + " " + job.getType() + " " + job.getStatus() + " " + coinService.formatAmount(job.getReward());
     }
 }

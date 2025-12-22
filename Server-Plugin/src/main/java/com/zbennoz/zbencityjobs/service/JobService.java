@@ -6,6 +6,7 @@ import com.zbennoz.zbencityjobs.model.JobCreationSession;
 import com.zbennoz.zbencityjobs.model.JobStatus;
 import com.zbennoz.zbencityjobs.model.JobType;
 import com.zbennoz.zbencityjobs.repository.JobRepository;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,17 +21,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JobService {
     private final ZBenCityJobs plugin;
     private final JobRepository repository;
-    private final EconomyService economyService;
+    private final CoinService coinService;
     private final AuditService auditService;
     private final boolean escrowRequired;
     private final boolean asyncWrites;
     private final Map<Integer, Job> cache = new ConcurrentHashMap<>();
 
-    public JobService(ZBenCityJobs plugin, JobRepository repository, EconomyService economyService, AuditService auditService,
+    public JobService(ZBenCityJobs plugin, JobRepository repository, CoinService coinService, AuditService auditService,
                       boolean escrowRequired, boolean asyncWrites) {
         this.plugin = plugin;
         this.repository = repository;
-        this.economyService = economyService;
+        this.coinService = coinService;
         this.auditService = auditService;
         this.escrowRequired = escrowRequired;
         this.asyncWrites = asyncWrites;
@@ -54,10 +55,8 @@ public class JobService {
 
     public Optional<Job> createJob(Player requester, JobCreationSession session) {
         boolean escrow = escrowRequired;
-        if (escrow && economyService.hasEconomy()) {
-            if (!economyService.withdraw(requester.getUniqueId(), session.getReward())) {
-                return Optional.empty();
-            }
+        if (escrow && !coinService.remove(requester.getUniqueId(), session.getReward(), "job-escrow")) {
+            return Optional.empty();
         }
         Job job = new Job(session.getType(), requester.getUniqueId(), session.getReward(), escrow, session.getDescription(), session.getDeliveryItem());
         try {
@@ -124,8 +123,8 @@ public class JobService {
         if (job.getStatus() == JobStatus.COMPLETED || job.getStatus() == JobStatus.CANCELLED) return false;
         job.setStatus(JobStatus.CANCELLED);
         save(job);
-        if (job.isEscrow() && economyService.hasEconomy()) {
-            economyService.deposit(job.getRequester(), job.getReward());
+        if (job.isEscrow()) {
+            coinService.add(job.getRequester(), job.getReward(), "job-cancel");
         }
         auditService.log(actor.getUniqueId(), "job.cancel", "job=" + id);
         return true;
@@ -134,8 +133,8 @@ public class JobService {
     private void completeJob(Job job) {
         job.setStatus(JobStatus.COMPLETED);
         save(job);
-        if (job.isEscrow() && economyService.hasEconomy() && job.getWorker() != null) {
-            economyService.deposit(job.getWorker(), job.getReward());
+        if (job.isEscrow() && job.getWorker() != null) {
+            coinService.add(job.getWorker(), job.getReward(), "job-complete");
         }
         auditService.log(job.getRequester(), "job.complete", "job=" + job.getId());
     }

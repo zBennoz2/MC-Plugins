@@ -34,7 +34,7 @@ public class CompanyCommand implements CommandExecutor {
             String name = args[1];
             companyService.createCompany(player, name).ifPresentOrElse(company ->
                     player.sendMessage(messages.get("info.company-created", Map.of("name", company.getName()))),
-                    () -> player.sendMessage(messages.get("errors.no-permission")));
+                    () -> player.sendMessage(messages.get("errors.transaction-failed")));
             return true;
         }
 

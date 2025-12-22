@@ -1,4 +1,12 @@
 # ZBenCityJobs configuration
+coins:
+  starting-balance: 0
+  currency-name: "ZBenCoins"
+  currency-symbol: "⛃"
+  allow-negative: false
+  transaction-log: true
+  max-amount: 1000000000
+
 storage:
   database: cityjobs.db
   use-wal: true
@@ -8,6 +16,12 @@ economy:
   escrow-required: true
   escrow-account: server
   tax-default-percent: 5.0
+
+company:
+  creation-cost: 0
+
+city:
+  creation-cost: 0
 
 logging:
   debug: false

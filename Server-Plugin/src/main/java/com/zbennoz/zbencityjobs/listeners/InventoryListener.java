@@ -2,6 +2,7 @@ package com.zbennoz.zbencityjobs.listeners;
 
 import com.zbennoz.zbencityjobs.gui.JobBoardGUI;
 import com.zbennoz.zbencityjobs.gui.MarketGUI;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import com.zbennoz.zbencityjobs.service.JobService;
 import com.zbennoz.zbencityjobs.service.MarketService;
 import com.zbennoz.zbencityjobs.util.MessageService;
@@ -15,13 +16,15 @@ public class InventoryListener implements Listener {
     private final MarketGUI marketGUI;
     private final JobService jobService;
     private final MarketService marketService;
+    private final CoinService coinService;
     private final MessageService messages;
 
-    public InventoryListener(JobBoardGUI jobBoardGUI, MarketGUI marketGUI, JobService jobService, MarketService marketService, MessageService messages) {
+    public InventoryListener(JobBoardGUI jobBoardGUI, MarketGUI marketGUI, JobService jobService, MarketService marketService, CoinService coinService, MessageService messages) {
         this.jobBoardGUI = jobBoardGUI;
         this.marketGUI = marketGUI;
         this.jobService = jobService;
         this.marketService = marketService;
+        this.coinService = coinService;
         this.messages = messages;
     }
 
@@ -40,9 +43,15 @@ public class InventoryListener implements Listener {
         if (title.equals("Markt")) {
             event.setCancelled(true);
             marketGUI.resolveListing(player, event.getSlot()).ifPresent(id -> {
-                if (marketService.purchase(id, player)) {
-                    player.sendMessage(messages.get("info.listing-bought"));
-                }
+                marketService.getListing(id).ifPresent(listing -> {
+                    if (marketService.purchase(id, player)) {
+                        player.sendMessage(messages.get("info.listing-bought"));
+                    } else {
+                        player.sendMessage(messages.get("errors.not-enough-coins", java.util.Map.of(
+                                "amount", coinService.formatAmount(listing.getPrice()),
+                                "currency", coinService.getCurrencyName())));
+                    }
+                });
             });
         }
     }

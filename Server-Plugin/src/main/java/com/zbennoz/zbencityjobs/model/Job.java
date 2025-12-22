@@ -10,14 +10,14 @@ public class Job {
     private final JobType type;
     private final UUID requester;
     private UUID worker;
-    private final double reward;
+    private final long reward;
     private final boolean escrow;
     private JobStatus status;
     private final String description;
     private ItemStack deliveryItem;
     private final long createdAt;
 
-    public Job(int id, JobType type, UUID requester, UUID worker, double reward, boolean escrow,
+    public Job(int id, JobType type, UUID requester, UUID worker, long reward, boolean escrow,
                JobStatus status, String description, ItemStack deliveryItem, long createdAt) {
         this.id = id;
         this.type = type;
@@ -31,7 +31,7 @@ public class Job {
         this.createdAt = createdAt;
     }
 
-    public Job(JobType type, UUID requester, double reward, boolean escrow, String description, ItemStack deliveryItem) {
+    public Job(JobType type, UUID requester, long reward, boolean escrow, String description, ItemStack deliveryItem) {
         this(0, type, requester, null, reward, escrow, JobStatus.OPEN, description, deliveryItem, Instant.now().toEpochMilli());
     }
 
@@ -59,7 +59,7 @@ public class Job {
         this.worker = worker;
     }
 
-    public double getReward() {
+    public long getReward() {
         return reward;
     }
 

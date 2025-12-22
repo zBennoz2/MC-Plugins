@@ -4,8 +4,6 @@ main: com.zbennoz.zbencityjobs.ZBenCityJobs
 api-version: "1.21"
 author: ZBenNoZ
 description: Marketplace, jobs, companies and cities with escrow protection.
-softdepend:
-  - Vault
 commands:
   jobs:
     description: Manage jobs and open the job board.
@@ -23,6 +21,10 @@ commands:
     description: City administration commands.
     usage: /city
     permission: zbencityjobs.city
+  coins:
+    description: Manage and view ZBenCoins balances.
+    usage: /coins
+    permission: zbenjobs.coins.use
 permissions:
   zbencityjobs.admin:
     default: op
@@ -56,4 +58,8 @@ permissions:
   zbencityjobs.city:
     default: op
   zbencityjobs.city.admin:
+    default: op
+  zbenjobs.coins.use:
+    default: true
+  zbenjobs.coins.admin:
     default: op

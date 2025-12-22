@@ -8,7 +8,7 @@ public class JobCreationSession {
     private Stage stage = Stage.TYPE;
     private JobType type;
     private String description;
-    private double reward;
+    private long reward;
     private ItemStack deliveryItem;
 
     public Stage getStage() {
@@ -35,11 +35,11 @@ public class JobCreationSession {
         this.description = description;
     }
 
-    public double getReward() {
+    public long getReward() {
         return reward;
     }
 
-    public void setReward(double reward) {
+    public void setReward(long reward) {
         this.reward = reward;
     }
 

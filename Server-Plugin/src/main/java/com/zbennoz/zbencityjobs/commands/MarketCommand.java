@@ -2,6 +2,7 @@ package com.zbennoz.zbencityjobs.commands;
 
 import com.zbennoz.zbencityjobs.gui.MarketGUI;
 import com.zbennoz.zbencityjobs.service.MarketService;
+import com.zbennoz.zbencityjobs.service.CoinService;
 import com.zbennoz.zbencityjobs.util.MessageService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -14,11 +15,13 @@ import java.util.Map;
 public class MarketCommand implements CommandExecutor {
     private final MarketGUI marketGUI;
     private final MarketService marketService;
+    private final CoinService coinService;
     private final MessageService messages;
 
-    public MarketCommand(MarketGUI marketGUI, MarketService marketService, MessageService messages) {
+    public MarketCommand(MarketGUI marketGUI, MarketService marketService, CoinService coinService, MessageService messages) {
         this.marketGUI = marketGUI;
         this.marketService = marketService;
+        this.coinService = coinService;
         this.messages = messages;
     }
 
@@ -35,11 +38,10 @@ public class MarketCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("sell") && args.length >= 2) {
-            double price;
-            try {
-                price = Double.parseDouble(args[1]);
-            } catch (NumberFormatException e) {
-                return false;
+            long price = parseAmount(args[1]);
+            if (price <= 0) {
+                player.sendMessage(messages.get("errors.invalid-amount", Map.of("max", String.valueOf(coinService.getMaxAmount()))));
+                return true;
             }
             ItemStack inHand = player.getInventory().getItemInMainHand();
             if (inHand == null || inHand.getType().isAir()) {
@@ -54,5 +56,15 @@ public class MarketCommand implements CommandExecutor {
         }
 
         return false;
+    }
+
+    private long parseAmount(String raw) {
+        try {
+            long value = Long.parseLong(raw);
+            if (value <= 0) return -1;
+            return Math.min(value, coinService.getMaxAmount());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }
