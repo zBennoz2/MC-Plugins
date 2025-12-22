@@ -12,6 +12,6 @@ public class PermissionResolver {
     }
 
     public boolean has(Player player, String permission) {
-        return player.isOp() || player.hasPermission(permission) || rankManager.hasRankPermission(player, permission);
+        return player.hasPermission(permission) || rankManager.hasRankPermission(player, permission);
     }
 }
