@@ -7,3 +7,42 @@ offline.read_only: "§eOffline-Daten werden nur angezeigt (Read-Only)."
 inspect.enabled: "§aInspektor-Modus aktiviert. Rechtsklick auf einen Block zeigt Logs."
 inspect.disabled: "§cInspektor-Modus deaktiviert."
 inspect.no_logs: "§7Keine Einträge gefunden."
+inspect.containers_disabled: "§cContainer-Logs sind deaktiviert."
+inspect.container_entry: "§7[%time%] %player% hat %amount%x %material% %action%."
+rank.player_only: "§cNur Spieler können diesen Befehl nutzen."
+rank.unknown_command: "§cUnbekanntes Unterkommando. Nutze /rank help."
+rank.help: |-
+  §6/rank help§7 - Zeigt diese Hilfe
+  §6/rank list§7 - Listet alle Ränge
+  §6/rank info <rang>§7 - Zeigt Details zu einem Rang
+  §6/rank create <rang> <farbe> <prio>§7 - Erstellt einen Rang
+  §6/rank delete <rang>§7 - Löscht einen Rang
+  §6/rank set <spieler> <rang>§7 - Setzt den Rang eines Spielers
+  §6/rank remove <spieler>§7 - Entfernt den Rang eines Spielers
+  §6/rank perm add/remove <rang> <permission>§7 - Bearbeitet Rang-Berechtigungen
+  §6/rank perm list <rang>§7 - Listet Berechtigungen eines Ranges
+rank.list: "§7Verfügbare Ränge: %ranks%"
+rank.info_usage: "§cNutzung: /rank info <rang>"
+rank.create_usage: "§cNutzung: /rank create <rang> <farbe> <prio>"
+rank.delete_usage: "§cNutzung: /rank delete <rang>"
+rank.set_usage: "§cNutzung: /rank set <spieler> <rang>"
+rank.remove_usage: "§cNutzung: /rank remove <spieler>"
+rank.perm_usage: "§cNutzung: /rank perm <add|remove|list> <rang> [permission]"
+rank.perm_add_usage: "§cNutzung: /rank perm add <rang> <permission>"
+rank.perm_remove_usage: "§cNutzung: /rank perm remove <rang> <permission>"
+rank.created: "§aRang erstellt: %name%"
+rank.create_failed: "§cRang konnte nicht erstellt werden."
+rank.deleted: "§cRang gelöscht: %name%"
+rank.delete_failed: "§cRang konnte nicht gelöscht werden."
+rank.assigned: "§a%player% hat nun den Rang %rank%."
+rank.removed: "§eRang von %player% entfernt."
+rank.not_found: "§cDieser Rang existiert nicht."
+rank.invalid_priority: "§cPriorität muss eine Zahl sein."
+rank.invalid_color: "§cFarbe konnte nicht erkannt werden. Erlaubt: ChatColor oder Hex."
+rank.info_line: "§7%name% (§fFarbe§7: %color%, §fPrio§7: %priority%)"
+rank.permissions_empty: "§7Keine zusätzlichen Berechtigungen eingetragen."
+rank.perm_list_header: "§7Berechtigungen für %rank%:"
+rank.perm_list_entry: " §8- §f%perm%"
+rank.permission_added: "§aBerechtigung %perm% zu %rank% hinzugefügt."
+rank.permission_removed: "§cBerechtigung %perm% von %rank% entfernt."
+rank.permission_failed: "§cDie Berechtigung konnte nicht geändert werden."

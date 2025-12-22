@@ -69,7 +69,9 @@ public class ZBenAdmintool extends JavaPlugin {
         getCommand("admintool").setExecutor(new AdminCommand(this));
         getCommand("adminmode").setExecutor(new AdminModeCommand(this));
         getCommand("vanish").setExecutor(new VanishCommand(this));
-        getCommand("rank").setExecutor(new RankCommand(this));
+        RankCommand rankCommand = new RankCommand(this);
+        getCommand("rank").setExecutor(rankCommand);
+        getCommand("rank").setTabCompleter(rankCommand);
         getCommand("inspect").setExecutor(new InspectCommand(this));
         getCommand("logs").setExecutor(new LogsCommand(this));
         getCommand("offinv").setExecutor(new OfflineInventoryCommand(this));

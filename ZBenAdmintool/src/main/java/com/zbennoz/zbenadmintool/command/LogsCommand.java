@@ -45,6 +45,10 @@ public class LogsCommand implements CommandExecutor {
         if (type.equalsIgnoreCase("block")) {
             plugin.getLogManager().sendBlockLogs(player, loc, page);
         } else {
+            if (!plugin.getConfig().getBoolean("logging.containers.enabled", true)) {
+                player.sendMessage(plugin.getMessages().raw("inspect.containers_disabled"));
+                return true;
+            }
             plugin.getLogManager().sendContainerLogs(player, loc, page);
         }
         return true;

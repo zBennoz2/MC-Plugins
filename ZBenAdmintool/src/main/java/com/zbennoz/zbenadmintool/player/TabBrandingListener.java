@@ -22,6 +22,7 @@ public class TabBrandingListener implements Listener {
         if (plugin.getConfig().getBoolean("tab.branding.enabled", true)) {
             applyBranding(plugin, event.getPlayer());
         }
+        plugin.getRankManager().refreshPlayerTeam(event.getPlayer());
     }
 
     public static void applyBranding(ZBenAdmintool plugin, Player player) {

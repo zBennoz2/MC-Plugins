@@ -6,6 +6,7 @@ logging:
     enabled: true
   containers:
     enabled: true
+  debug: false
   maxRowsPerQuery: 10
 inspector:
   maxEntries: 20
