@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,6 +52,13 @@ public class JobService {
 
     public Optional<Job> getJob(int id) {
         return Optional.ofNullable(cache.get(id));
+    }
+
+    public Optional<Job> findActiveJob(UUID worker) {
+        return cache.values().stream()
+                .filter(job -> worker.equals(job.getWorker()))
+                .filter(job -> job.getStatus() != JobStatus.CANCELLED && job.getStatus() != JobStatus.COMPLETED)
+                .min(Comparator.comparingInt(Job::getId));
     }
 
     public Optional<Job> createJob(Player requester, JobCreationSession session) {

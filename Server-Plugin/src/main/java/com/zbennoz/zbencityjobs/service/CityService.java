@@ -48,6 +48,18 @@ public class CityService {
         }
     }
 
+    public Optional<City> findCityForPlayer(UUID uuid) {
+        try {
+            Optional<City> byMayor = repository.findByMayor(uuid);
+            if (byMayor.isPresent()) {
+                return byMayor;
+            }
+            return repository.findByMember(uuid);
+        } catch (SQLException e) {
+            return Optional.empty();
+        }
+    }
+
     public boolean setMayor(City city, UUID mayor) {
         city.setMayor(mayor);
         try {

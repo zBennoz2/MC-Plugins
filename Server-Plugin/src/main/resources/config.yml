@@ -29,3 +29,22 @@ logging:
 gui:
   job-board-size: 54
   market-size: 54
+
+branding:
+  tab:
+    header: |
+      §bZBen Network
+      §7City · Company · Jobs
+    footer: |
+      §7Coins: {coins} {currency}
+      §7Viel Spaß auf dem Server!
+
+scoreboard:
+  enabled: true
+  title: "§bCityJobs"
+  refresh-ticks: 100
+  lines:
+    coins: "§7Coins: §6{coins}"
+    city: "§7Stadt: §b{city}"
+    company: "§7Firma: §3{company}"
+    job: "§7Job: §e{job}"

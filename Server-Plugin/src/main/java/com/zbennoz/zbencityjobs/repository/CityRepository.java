@@ -23,6 +23,12 @@ public class CityRepository {
                     "mayor_uuid TEXT, " +
                     "tax_percent REAL NOT NULL" +
                     ")");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS city_members (" +
+                    "city_id INTEGER NOT NULL, " +
+                    "member_uuid TEXT NOT NULL, " +
+                    "PRIMARY KEY(city_id, member_uuid), " +
+                    "FOREIGN KEY(city_id) REFERENCES cities(id) ON DELETE CASCADE" +
+                    ")");
         }
     }
 
@@ -64,5 +70,33 @@ public class CityRepository {
             ps.setInt(3, city.getId());
             ps.executeUpdate();
         }
+    }
+
+    public Optional<City> findByMayor(UUID mayor) throws SQLException {
+        String sql = "SELECT * FROM cities WHERE mayor_uuid=?";
+        try (Connection connection = database.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, mayor.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                UUID mayorId = rs.getString("mayor_uuid") != null ? UUID.fromString(rs.getString("mayor_uuid")) : null;
+                return Optional.of(new City(rs.getInt("id"), rs.getString("name"), mayorId, rs.getDouble("tax_percent")));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<City> findByMember(UUID member) throws SQLException {
+        String sql = "SELECT c.* FROM cities c JOIN city_members m ON c.id = m.city_id WHERE m.member_uuid=?";
+        try (Connection connection = database.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, member.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                UUID mayor = rs.getString("mayor_uuid") != null ? UUID.fromString(rs.getString("mayor_uuid")) : null;
+                return Optional.of(new City(rs.getInt("id"), rs.getString("name"), mayor, rs.getDouble("tax_percent")));
+            }
+        }
+        return Optional.empty();
     }
 }
