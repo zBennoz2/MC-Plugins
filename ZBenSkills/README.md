@@ -5,6 +5,7 @@
 - Anti-Exploit-Mechaniken (Cooldowns, Diminishing Returns, Spawner-Block, Welt-Blacklist).
 - Challenges und Achievements (Definitionen in `achievements.yml`), GUI-Menü über `/skills`.
 - Persistente Speicherung von Skill-XP/Leveln (Repository), automatisches Caching und Flush beim Stop.
+- Spürbare Vorteile pro Skill (z. B. Mining-Doppeldrops, Holz-Haste, Farming-Extrasaat, Combat/Archery-Damage, Crafting/Trading-Boni). Prestige erhöht alle Boni pro Stufe um den konfigurierten Multiplikator.
 
 ## Quickstart
 1. Jar in `plugins/` legen und Server starten (legt `config.yml`, `messages.yml`, `achievements.yml` an).
@@ -32,6 +33,8 @@
 | Command | Beschreibung | Permission | Aliases |
 | --- | --- | --- | --- |
 | `/skills [challenges|achievements|prestige]` | Skill-Menü öffnen und Unterseiten wählen. | `zbenskills.use` | `skill`, `ability` |
+| `/skills info <skill>` | Zeigt Level, Prestige, Fortschritt und aktive Vorteile des Skills an. | `zbenskills.use` |  |
+| `/skills reload` | Plugin neu laden. | `zbenskills.admin` |  |
 
 ## Permissions
 - `zbenskills.use` – Zugriff auf das Skill-Menü (Default: true).
@@ -43,6 +46,7 @@
 - Progression anpassen: `skills.max-level` auf 100 senken und `exponential-base` reduzieren für schnelleren Fortschritt.
 - Anti-Exploit verschärfen: `anti-exploit.disable-spawner-mobs: true` und `diminish-threshold` verringern.
 - Prestige-Belohnungen: `skills.prestige.tokens` erhöhen, wenn Prestige attraktiver sein soll.
+- Vorteile konfigurieren: In `benefits.*` Basiswerte, Skalierung und Caps je Skill anpassen. Formel: `(base + (Level-1)*per-level) * (1 + prestige*prestige-multiplier)`, gedeckelt durch `max`.
 
 ## Troubleshooting
 - **XP steigt nicht:** Welt evtl. in `anti-exploit.disable-worlds` gelistet oder Aktionen unter Cooldown (`action-cooldown-ms`).

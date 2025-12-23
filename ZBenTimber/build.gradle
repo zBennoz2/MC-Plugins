@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:"
+    compileOnly "io.papermc.paper:paper-api:${paperVersion}"
     implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
     implementation 'net.kyori:adventure-text-minimessage:4.17.0'
 }

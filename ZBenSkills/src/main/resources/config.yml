@@ -8,6 +8,93 @@ skills:
   prestige:
     tokens: 1
 
+benefits:
+  prestige-multiplier: 0.08
+  mining:
+    double-drop-chance:
+      base: 0.05
+      per-level: 0.0015
+      max: 0.35
+    haste-seconds:
+      base: 0.5
+      per-level: 0.02
+      max: 6.0
+    xp-bonus:
+      base: 0.0
+      per-level: 0.002
+      max: 0.25
+  woodcutting:
+    extra-log-chance:
+      base: 0.05
+      per-level: 0.001
+      max: 0.3
+    wood-haste-seconds:
+      base: 0.5
+      per-level: 0.02
+      max: 5.0
+  farming:
+    extra-crop-chance:
+      base: 0.05
+      per-level: 0.0012
+      max: 0.3
+    seed-refund-chance:
+      base: 0.03
+      per-level: 0.001
+      max: 0.25
+  fishing:
+    treasure-chance:
+      base: 0.03
+      per-level: 0.001
+      max: 0.25
+    double-fish-chance:
+      base: 0.04
+      per-level: 0.001
+      max: 0.3
+  combat:
+    damage-bonus:
+      base: 0.01
+      per-level: 0.0008
+      max: 0.25
+  archery:
+    crit-chance:
+      base: 0.03
+      per-level: 0.001
+      max: 0.35
+    projectile-damage:
+      base: 0.01
+      per-level: 0.0007
+      max: 0.2
+  alchemy:
+    brew-bonus-chance:
+      base: 0.05
+      per-level: 0.001
+      max: 0.3
+  enchanting:
+    anvil-discount:
+      base: 0.05
+      per-level: 0.001
+      max: 0.4
+  building:
+    refund-chance:
+      base: 0.03
+      per-level: 0.001
+      max: 0.25
+  trading:
+    emerald-cashback:
+      base: 0.05
+      per-level: 0.001
+      max: 0.35
+  exploration:
+    speed-seconds:
+      base: 0.6
+      per-level: 0.02
+      max: 5.0
+  crafting:
+    extra-output-chance:
+      base: 0.04
+      per-level: 0.001
+      max: 0.3
+
 anti-exploit:
   action-cooldown-ms: 1500
   diminish-window-seconds: 30

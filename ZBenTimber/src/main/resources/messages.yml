@@ -1,0 +1,7 @@
+prefix: "&b&lZBenTimber &7» "
+toggle-on: "&aBlätterabbau: Aktiviert"
+toggle-off: "&cBlätterabbau: Deaktiviert"
+invalid-argument: "&cNutze /timber leaves [an|aus]"
+reload: "&aKonfiguration neu geladen."
+no-permission: "&cDazu hast du keine Berechtigung."
+not-player: "&cNur Spieler können diesen Befehl verwenden."

@@ -17,6 +17,7 @@ public class SkillConfig {
     private final Map<SkillType, List<SkillNode>> skillNodes = new EnumMap<>(SkillType.class);
     private final List<AchievementDefinition> achievements = new ArrayList<>();
     private final List<ChallengeDefinition> challenges = new ArrayList<>();
+    private final Map<SkillType, Map<String, BenefitValue>> benefitValues = new EnumMap<>(SkillType.class);
 
     private final int maxLevel;
     private final double baseXp;
@@ -24,6 +25,7 @@ public class SkillConfig {
     private final double softCapStart;
     private final double softCapMultiplier;
     private final int prestigeTokenReward;
+    private final double prestigeBenefitMultiplier;
     private final int nodeCountPerSkill;
 
     private final long actionCooldownMs;
@@ -42,6 +44,7 @@ public class SkillConfig {
         this.softCapStart = config.getDouble("skills.softcap-start", 150);
         this.softCapMultiplier = config.getDouble("skills.softcap-multiplier", 1.32);
         this.prestigeTokenReward = config.getInt("skills.prestige.tokens", 1);
+        this.prestigeBenefitMultiplier = config.getDouble("benefits.prestige-multiplier", 0.1);
         this.nodeCountPerSkill = Math.max(25, config.getInt("skill-tree.default-node-count", 25));
 
         this.actionCooldownMs = config.getLong("anti-exploit.action-cooldown-ms", 1500L);
@@ -57,6 +60,28 @@ public class SkillConfig {
         loadNodes(config);
         loadAchievements();
         loadChallenges();
+        loadBenefits(config);
+    }
+
+    private void loadBenefits(FileConfiguration config) {
+        ConfigurationSection root = config.getConfigurationSection("benefits");
+        for (SkillType type : SkillType.values()) {
+            Map<String, BenefitValue> map = new HashMap<>();
+            ConfigurationSection section = root != null ? root.getConfigurationSection(type.name().toLowerCase()) : null;
+            if (section != null) {
+                for (String key : section.getKeys(false)) {
+                    ConfigurationSection valueSection = section.getConfigurationSection(key);
+                    if (valueSection == null) {
+                        continue;
+                    }
+                    double base = valueSection.getDouble("base", 0.0);
+                    double perLevel = valueSection.getDouble("per-level", 0.0);
+                    double max = valueSection.getDouble("max", 1.0);
+                    map.put(key, new BenefitValue(base, perLevel, max));
+                }
+            }
+            benefitValues.put(type, map);
+        }
     }
 
     private void loadNodes(FileConfiguration config) {
@@ -153,6 +178,10 @@ public class SkillConfig {
         return prestigeTokenReward;
     }
 
+    public double getPrestigeBenefitMultiplier() {
+        return prestigeBenefitMultiplier;
+    }
+
     public Map<SkillType, List<SkillNode>> getSkillNodes() {
         return skillNodes;
     }
@@ -191,5 +220,18 @@ public class SkillConfig {
 
     public boolean isDisableSpawnerMobs() {
         return disableSpawnerMobs;
+    }
+
+    public double getBenefitValue(SkillType skill, String key, int level, int prestige) {
+        Map<String, BenefitValue> map = benefitValues.getOrDefault(skill, Map.of());
+        BenefitValue value = map.get(key);
+        if (value == null) {
+            return 0.0;
+        }
+        return value.calculate(level, prestige, prestigeBenefitMultiplier);
+    }
+
+    public Map<String, BenefitValue> getBenefitConfig(SkillType skill) {
+        return benefitValues.getOrDefault(skill, Map.of());
     }
 }

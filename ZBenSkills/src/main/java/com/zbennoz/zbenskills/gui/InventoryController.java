@@ -5,7 +5,9 @@ import com.zbennoz.zbenskills.config.SkillConfig;
 import com.zbennoz.zbenskills.model.ChallengeDefinition;
 import com.zbennoz.zbenskills.model.SkillNode;
 import com.zbennoz.zbenskills.model.SkillType;
+import com.zbennoz.zbenskills.service.MessageService;
 import com.zbennoz.zbenskills.service.ChallengeService;
+import com.zbennoz.zbenskills.service.SkillBenefitService;
 import com.zbennoz.zbenskills.service.SkillService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,18 +22,23 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class InventoryController implements Listener {
     private final ZBenSkillsPlugin plugin;
     private final SkillService skillService;
     private final SkillConfig config;
     private final ChallengeService challengeService;
+    private final MessageService messages;
+    private final SkillBenefitService benefitService;
 
-    public InventoryController(ZBenSkillsPlugin plugin, SkillService skillService, SkillConfig config, ChallengeService challengeService) {
+    public InventoryController(ZBenSkillsPlugin plugin, SkillService skillService, SkillConfig config, ChallengeService challengeService, MessageService messages, SkillBenefitService benefitService) {
         this.plugin = plugin;
         this.skillService = skillService;
         this.config = config;
         this.challengeService = challengeService;
+        this.messages = messages;
+        this.benefitService = benefitService;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -46,7 +53,12 @@ public class InventoryController implements Listener {
             int level = skillService.getLevel(player.getUniqueId(), type);
             int prestige = skillService.getPrestige(player.getUniqueId(), type);
             lore.add(ChatColor.GRAY + "Level: " + ChatColor.GREEN + level + ChatColor.GRAY + " / " + config.getMaxLevel());
-            lore.add(ChatColor.GOLD + "Prestige: " + prestige);
+            lore.add(ChatColor.GOLD + "Prestige: " + prestige + ChatColor.GRAY + " (" + ChatColor.YELLOW + String.format(java.util.Locale.GERMAN, "%.1f%%", config.getPrestigeBenefitMultiplier() * 100) + ChatColor.GRAY + " Bonus/Stufe)");
+            lore.add(ChatColor.YELLOW + "Vorteile:");
+            List<String> perks = benefitService.describe(player.getUniqueId(), type);
+            for (int i = 0; i < Math.min(3, perks.size()); i++) {
+                lore.add(perks.get(i));
+            }
             meta.setLore(lore);
             stack.setItemMeta(meta);
             inv.setItem(slot++, stack);
@@ -55,7 +67,7 @@ public class InventoryController implements Listener {
     }
 
     public void openTree(Player player, SkillType skill) {
-        Inventory inv = Bukkit.createInventory(new MenuHolder(MenuType.TREE, skill), 54, ChatColor.DARK_AQUA + skill.getDisplayName() + " Tree");
+        Inventory inv = Bukkit.createInventory(new MenuHolder(MenuType.TREE, skill), 54, ChatColor.DARK_AQUA + skill.getDisplayName() + "-Baum");
         List<SkillNode> nodes = config.getSkillNodes().get(skill);
         int slot = 0;
         for (SkillNode node : nodes) {
@@ -75,7 +87,7 @@ public class InventoryController implements Listener {
     }
 
     public void openChallenges(Player player) {
-        Inventory inv = Bukkit.createInventory(new MenuHolder(MenuType.CHALLENGES, null), 27, ChatColor.GOLD + "Challenges");
+        Inventory inv = Bukkit.createInventory(new MenuHolder(MenuType.CHALLENGES, null), 27, ChatColor.GOLD + "Aufgaben");
         int i = 0;
         for (ChallengeDefinition def : challengeService.getDailyChallenges()) {
             inv.setItem(i++, challengeItem(def, ChatColor.GREEN + "Daily"));
@@ -100,7 +112,7 @@ public class InventoryController implements Listener {
     }
 
     public void openAchievements(Player player) {
-        Inventory inv = Bukkit.createInventory(new MenuHolder(MenuType.ACHIEVEMENTS, null), 54, ChatColor.DARK_GREEN + "Achievements");
+        Inventory inv = Bukkit.createInventory(new MenuHolder(MenuType.ACHIEVEMENTS, null), 54, ChatColor.DARK_GREEN + "Erfolge");
         int slot = 0;
         for (var def : config.getAchievements()) {
             ItemStack stack = new ItemStack(Material.EMERALD);
@@ -146,8 +158,8 @@ public class InventoryController implements Listener {
                     }
                 }
             }
-            case ACHIEVEMENTS -> player.sendMessage(ChatColor.GRAY + "Sammle Level, um Achievements automatisch freizuschalten.");
-            case CHALLENGES -> player.sendMessage(ChatColor.GRAY + "Erfülle Ziele durch Spielen.");
+            case ACHIEVEMENTS -> messages.send(player, "gui-achievements", Map.of());
+            case CHALLENGES -> messages.send(player, "gui-challenges", Map.of());
         }
     }
 
