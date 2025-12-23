@@ -23,56 +23,47 @@ ranks:
       tabPrefix: "&c[Admin]&r "
       chatPrefix: "&c[Admin]&r "
       nametagPrefix: "&c[Admin]&r "
+      cost: 0.0
     VIP:
       priority: 80
       limit: 150
       tabPrefix: "&6[VIP]&r "
       chatPrefix: "&6[VIP]&r "
       nametagPrefix: "&6[VIP]&r "
+      cost: 0.0
     Stammspieler:
       priority: 60
       limit: 75
       tabPrefix: "&a[Stamm]&r "
       chatPrefix: "&a[Stamm]&r "
       nametagPrefix: "&a[Stamm]&r "
+      cost: 0.0
     Spieler:
       priority: 40
       limit: 25
       tabPrefix: "&7[Spieler]&r "
       chatPrefix: "&7[Spieler]&r "
       nametagPrefix: "&7[Spieler]&r "
+      cost: 0.0
     Beginner:
       priority: 20
       limit: 10
       tabPrefix: "&f[Beginner]&r "
       chatPrefix: "&f[Beginner]&r "
       nametagPrefix: "&f[Beginner]&r "
-
+      cost: 0.0
   mode: "auto"
 
-messages:
-  prefix: "&2&lZBenClaims &8» &r"
-  noPermission: "&cDazu hast du keine Rechte."
-  playerOnly: "&cNur Spieler können das nutzen."
-  unknownPlayer: "&cSpieler nicht gefunden."
-  claimSuccess: "&aChunk geclaimt! (&7%world% %x% %z%&a)"
-  claimAlreadyClaimed: "&cDieser Chunk ist bereits geclaimt von &e%owner%&c."
-  claimLimitReached: "&cDu hast dein Claim-Limit erreicht (&e%limit%&c)."
-  unclaimSuccess: "&aClaim entfernt."
-  unclaimNotOwner: "&cDu bist nicht der Owner dieses Claims."
-  notClaimed: "&cDieser Chunk ist nicht geclaimt."
-  trustSuccess: "&a%player% wurde vertraut."
-  untrustSuccess: "&e%player% wurde entfernt."
-  cannotTrustOwner: "&cDer Owner ist automatisch vertraut."
-  alreadyTrusted: "&c%player% ist bereits vertraut."
-  notTrusted: "&c%player% ist nicht vertraut."
-  listHeader: "&7Deine Claims (Seite %page%/%pages%):"
-  listEntry: "&8- &f%world% &7(%x%, %z%)"
-  reload: "&aConfig neu geladen."
-  rankSet: "&aRank von &e%player%&a gesetzt auf &e%rank%&a."
-  rankGet: "&7Rank von &e%player%&7: &f%rank%"
-  rankCleared: "&eRank von &e%player%&e entfernt (auto)."
-  protectedBreak: "&cDu darfst hier nicht abbauen."
-  protectedPlace: "&cDu darfst hier nicht bauen."
-  protectedOpen: "&cDu darfst hier nichts öffnen."
-  protectedInteract: "&cDu darfst hier nicht interagieren."
+autosort:
+  enabled: true
+  player_inventory: true
+  containers: true
+  sort_hotbar: false
+  requires_permission: false
+
+tablist:
+  enabled: true
+  branding:
+    enabled: true
+    header: "&6Hostet by &aZBenNoz Gaming"
+    footer: "&7Webseite: &bhttps://zbennoz.com"

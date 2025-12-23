@@ -11,7 +11,7 @@ public class AdminCommand extends BaseCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!ensurePerm(sender, "zbenclaims.admin")) return true;
+        if (!ensureAdmin(sender)) return true;
 
         if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             plugin.reloadAll();
