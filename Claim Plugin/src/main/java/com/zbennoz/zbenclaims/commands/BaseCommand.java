@@ -26,4 +26,14 @@ public abstract class BaseCommand {
         }
         return true;
     }
+
+    protected boolean ensureAdmin(CommandSender sender) {
+        if (sender.isOp() || sender.hasPermission("claim.admin")
+                || sender.hasPermission("zbenclaims.admin")
+                || sender.hasPermission("zbenclaims.admin.rank")) {
+            return true;
+        }
+        plugin.getMessages().send(sender, "noPermission");
+        return false;
+    }
 }

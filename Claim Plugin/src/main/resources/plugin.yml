@@ -29,11 +29,15 @@ commands:
   zbenclaims:
     description: Admin commands for ZBenClaims.
     usage: /zbenclaims reload
-    permission: zbenclaims.admin
+    permission: claim.admin
   rank:
     description: Manage player ranks for claim limits and prefixes.
     usage: /rank <set|get|list> ...
-    permission: zbenclaims.admin.rank
+    permission: claim.admin
+  ranks:
+    description: Verwalte Claim-Ränge und deren Eigenschaften.
+    usage: /ranks <list|info|create|delete|rename|set|addflag|removeflag|reload> ...
+    permission: claim.admin
 
 permissions:
   zbenclaims.use:
@@ -44,3 +48,7 @@ permissions:
     default: op
   zbenclaims.admin.rank:
     default: op
+  claim.admin:
+    default: op
+  claim.autosort:
+    default: true

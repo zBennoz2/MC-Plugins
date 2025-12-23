@@ -3,6 +3,9 @@
 ## Features
 - Chunk-basierte Claims mit Limit pro Rang und Trust-Liste.
 - Ränge mit eigenen Prefixen (Tab, Chat, Nametag) und Claim-Limits.
+- Rank-Editor direkt im Chat über `/ranks` (erstellen, umbenennen, Eigenschaften & Flags).
+- Inventar-/Kisten-Autosortierung per Mausrad (konfigurierbar, optional mit Permission).
+- Feste TAB-Branding-Texte (Header/Footer) beim Join und nach Reload.
 - Schutz-Flags (z. B. `interact_protected`) pro Claim mit Standardwerten aus der Config.
 - Admin- und Bypass-Unterstützung für Moderation.
 
@@ -17,15 +20,16 @@
 - **Build:** Gradle-Projekt, `./gradlew build` erzeugt das Jar unter `build/libs`.
 - **Installation:** Jar in den `plugins/`-Ordner kopieren, Server neu starten.
 
-## Konfiguration (Auszug aus `config.yml`)
-- **database.file:** Dateiname der SQLite-Datenbank.
-- **cache.preloadAllClaims:** Claims beim Start vorladen.
-- **claims.disabledWorlds:** Welten, in denen Claims deaktiviert sind.
-- **claims.requireChunkLoaded:** Verhindert Aktionen in entladenen Chunks, wenn true.
-- **flags.default.interact_protected:** Standard-Flag pro Claim.
-- **ranks.list:** Definiert verfügbare Ränge mit `priority`, Claim-`limit` und Prefixen.
-- **ranks.mode:** Rangbestimmung (z. B. `auto`).
-- **messages.***: Textbausteine und Prefix für Status- und Fehlermeldungen.
+## Konfiguration (Auszug)
+- **database.file:** Dateiname der SQLite-Datenbank (`config.yml`).
+- **cache.preloadAllClaims:** Claims beim Start vorladen (`config.yml`).
+- **claims.disabledWorlds:** Welten, in denen Claims deaktiviert sind (`config.yml`).
+- **flags.default.interact_protected:** Standard-Flag pro Claim (`config.yml`).
+- **ranks.list:** Verfügbare Ränge mit `priority`, Claim-`limit`, Prefixen, Kosten & Flags (`config.yml`).
+- **ranks.mode:** Rangbestimmung (z. B. `auto`) (`config.yml`).
+- **autosort.*:** Steuerung der Mausrad-Sortierung (Inventar/Kisten, Hotbar, Permission) (`config.yml`).
+- **tablist.branding.*:** Header/Footer für die TAB-Liste (`config.yml`).
+- **messages.yml:** Alle deutschen Meldungen, inkl. Rank- und Autosort-Texte.
 
 ## Commands
 | Command | Beschreibung | Permission | Aliases |
@@ -35,8 +39,9 @@
 | `/trust <spieler>` | Spieler im aktuellen Claim vertrauen. | `zbenclaims.use` | – |
 | `/untrust <spieler>` | Vertrauen entziehen. | `zbenclaims.use` | – |
 | `/claims [seite]` | Liste eigener Claims. | `zbenclaims.use` | – |
-| `/zbenclaims reload` | Config neu laden. | `zbenclaims.admin` | – |
-| `/rank <set|get|list> ...` | Ränge setzen/abfragen/verwalten. | `zbenclaims.admin.rank` | – |
+| `/zbenclaims reload` | Config neu laden. | `claim.admin` | – |
+| `/rank <set|get|list> ...` | Spieler-Ränge setzen/abfragen. | `claim.admin` | – |
+| `/ranks ...` | Rank-Definitionen listen/bearbeiten. | `claim.admin` (Lesen ohne Rechte) | – |
 
 ## Permissions
 - `zbenclaims.use` – Allgemeine Nutzung der Spielerbefehle (Default: true).

@@ -15,7 +15,7 @@ public class RankCommand extends BaseCommand implements CommandExecutor, TabComp
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!ensurePerm(sender, "zbenclaims.admin.rank")) return true;
+        if (!ensureAdmin(sender)) return true;
         if (args.length < 1) return false;
 
         String sub = args[0].toLowerCase(Locale.ROOT);

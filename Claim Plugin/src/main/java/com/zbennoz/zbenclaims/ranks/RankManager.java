@@ -50,7 +50,23 @@ public class RankManager implements Listener {
             String tab = plugin.getConfig().getString(path + "tabPrefix", "");
             String chat = plugin.getConfig().getString(path + "chatPrefix", "");
             String tag = plugin.getConfig().getString(path + "nametagPrefix", "");
-            tmp.put(name.toLowerCase(Locale.ROOT), new Rank(name, prio, limit, tab, chat, tag));
+            double cost = plugin.getConfig().getDouble(path + "cost", 0.0D);
+
+            Set<String> flags = Optional.ofNullable(plugin.getConfig().getConfigurationSection(path + "flags"))
+                    .map(flagSec -> flagSec.getValues(false).entrySet().stream()
+                            .filter(e -> e.getValue() instanceof Boolean && (Boolean) e.getValue())
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toSet()))
+                    .orElseGet(HashSet::new);
+
+            Set<String> permissions = Optional.ofNullable(plugin.getConfig().getConfigurationSection(path + "permissions"))
+                    .map(permSec -> permSec.getValues(false).entrySet().stream()
+                            .filter(e -> e.getValue() instanceof Boolean && (Boolean) e.getValue())
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toSet()))
+                    .orElseGet(HashSet::new);
+
+            tmp.put(name.toLowerCase(Locale.ROOT), new Rank(name, prio, limit, tab, chat, tag, cost, flags, permissions));
         }
         this.ranks = tmp;
         this.sorted = tmp.values().stream()
@@ -92,13 +108,24 @@ public class RankManager implements Listener {
     }
 
     private Rank fallbackRank() {
-        return sorted.isEmpty() ? new Rank("Default", 0, 10, "", "", "") : sorted.get(sorted.size() - 1);
+        return sorted.isEmpty()
+                ? new Rank("Default", 0, 10, "", "", "", 0.0D, Set.of(), Set.of())
+                : sorted.get(sorted.size() - 1);
     }
 
     public int getClaimLimit(UUID uuid) {
         Player p = Bukkit.getPlayer(uuid);
         Rank r = getRank(uuid, p);
         return Math.max(0, r.limit());
+    }
+
+    public Optional<Rank> getRank(String name) {
+        if (name == null) return Optional.empty();
+        return Optional.ofNullable(ranks.get(name.toLowerCase(Locale.ROOT)));
+    }
+
+    public Collection<Rank> getRanks() {
+        return Collections.unmodifiableCollection(sorted);
     }
 
     public void applyVisuals(Player p) {
