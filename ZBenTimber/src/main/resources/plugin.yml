@@ -3,7 +3,10 @@ version: ${version}
 main: com.zbennoz.zbentimber.ZBenTimberPlugin
 author: zbennoz
 api-version: '1.21'
-commands: {}
+commands:
+  timber:
+    description: "Schalte Timber-Optionen um"
+    usage: "/timber leaves [on|off]"
 permissions:
   zbentimber.tree:
     default: true
@@ -11,3 +14,5 @@ permissions:
     default: true
   zbentimber.stone:
     default: true
+  zbentimber.admin:
+    default: op

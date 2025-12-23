@@ -8,11 +8,12 @@ import com.zbennoz.zbenskills.model.SkillNode;
 import com.zbennoz.zbenskills.model.SkillType;
 import com.zbennoz.zbenskills.storage.PlayerSkillRepository;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,12 +22,14 @@ public class SkillService {
     private final SkillConfig config;
     private final AntiExploitService antiExploitService;
     private final ChallengeService challengeService;
+    private final MessageService messages;
 
-    public SkillService(ZBenSkillsPlugin plugin, PlayerSkillRepository repository, SkillConfig config, AntiExploitService antiExploitService, ChallengeService challengeService) {
+    public SkillService(ZBenSkillsPlugin plugin, PlayerSkillRepository repository, SkillConfig config, AntiExploitService antiExploitService, ChallengeService challengeService, MessageService messages) {
         this.repository = repository;
         this.config = config;
         this.antiExploitService = antiExploitService;
         this.challengeService = challengeService;
+        this.messages = messages;
     }
 
     public void addXp(Player player, SkillType skill, double amount, String actionKey) {
@@ -41,6 +44,9 @@ public class SkillService {
         PlayerProfile profile = repository.getProfile(player.getUniqueId());
         double currentXp = profile.getXp().getOrDefault(skill, 0.0);
         int level = profile.getLevels().getOrDefault(skill, 1);
+        int prestige = profile.getPrestige().getOrDefault(skill, 0);
+        double bonus = config.getBenefitValue(skill, "xp-bonus", level, prestige);
+        finalAmount *= 1 + bonus;
         if (level >= config.getMaxLevel()) {
             return;
         }
@@ -52,7 +58,10 @@ public class SkillService {
             profile.getLevels().put(skill, level);
             profile.addSkillPoints(1);
             Bukkit.getPluginManager().callEvent(new com.zbennoz.zbenskills.api.SkillLevelUpEvent(player, skill, level));
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "[Skills] " + ChatColor.RESET + "" + skill.getDisplayName() + " is now level " + level + "!");
+            messages.send(player, "level-up", Map.of(
+                    "skill", skill.getDisplayName(),
+                    "level", String.valueOf(level)
+            ));
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
             needed = config.xpRequiredForLevel(level);
         }
@@ -73,7 +82,10 @@ public class SkillService {
                 profile.getAchievements().add(def.getId());
                 profile.addSkillPoints(def.getSkillPoints());
                 repository.saveProfileAsync(profile);
-                player.sendMessage(ChatColor.AQUA + "[Achievement] " + def.getName() + ChatColor.GRAY + " unlocked!" + ChatColor.YELLOW + " +" + def.getSkillPoints() + " Skillpunkte");
+                messages.send(player, "achievement", Map.of(
+                        "name", def.getName(),
+                        "points", String.valueOf(def.getSkillPoints())
+                ));
             }
         }
     }
@@ -85,23 +97,23 @@ public class SkillService {
         }
         int level = profile.getLevels().getOrDefault(node.getSkill(), 1);
         if (level < node.getRequiredLevel()) {
-            player.sendMessage(ChatColor.RED + "Du benötigst Level " + node.getRequiredLevel());
+            messages.send(player, "node-level", Map.of("level", String.valueOf(node.getRequiredLevel())));
             return false;
         }
         for (String req : node.getPrerequisites()) {
             if (!profile.getUnlockedNodes().contains(req)) {
-                player.sendMessage(ChatColor.RED + "Benötigt Node: " + req);
+                messages.send(player, "node-requirement", Map.of("req", req));
                 return false;
             }
         }
         if (!profile.spendSkillPoints(node.getCost())) {
-            player.sendMessage(ChatColor.RED + "Nicht genug Skillpunkte!");
+            messages.send(player, "not-enough-points", Map.of());
             return false;
         }
         profile.getUnlockedNodes().add(node.getId());
         repository.saveProfileAsync(profile);
         Bukkit.getPluginManager().callEvent(new com.zbennoz.zbenskills.api.NodeUnlockEvent(player, node));
-        player.sendMessage(ChatColor.GREEN + "Node " + node.getName() + " freigeschaltet.");
+        messages.send(player, "node-unlocked", Map.of("name", node.getName()));
         return true;
     }
 
@@ -109,7 +121,7 @@ public class SkillService {
         PlayerProfile profile = repository.getProfile(player.getUniqueId());
         int level = profile.getLevels().getOrDefault(skill, 1);
         if (level < config.getMaxLevel()) {
-            player.sendMessage(ChatColor.RED + "Du musst Max-Level erreichen.");
+            messages.send(player, "prestige-requirement", Map.of());
             return false;
         }
         profile.getLevels().put(skill, 1);
@@ -119,7 +131,11 @@ public class SkillService {
         profile.addSkillPoints(config.getPrestigeTokenReward());
         repository.saveProfileAsync(profile);
         Bukkit.getPluginManager().callEvent(new com.zbennoz.zbenskills.api.PrestigeEvent(player, skill, prestige));
-        player.sendMessage(ChatColor.GOLD + "Prestige ausgelöst! Neue Prestige-Stufe: " + prestige);
+        double prestigeBoost = (config.getPrestigeBenefitMultiplier() * 100);
+        messages.send(player, "prestige-success", Map.of(
+                "prestige", String.valueOf(prestige),
+                "bonus", String.format(Locale.GERMAN, "%.1f", prestigeBoost)
+        ));
         return true;
     }
 
@@ -137,5 +153,9 @@ public class SkillService {
 
     public Set<String> getUnlocked(UUID uuid) {
         return repository.getProfile(uuid).getUnlockedNodes();
+    }
+
+    public PlayerProfile getProfile(UUID uuid) {
+        return repository.getProfile(uuid);
     }
 }

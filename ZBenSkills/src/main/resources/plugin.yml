@@ -7,10 +7,13 @@ authors:
 description: Progression heavy skill system with trees, achievements and prestige.
 commands:
   skills:
-    description: Open the skill menu.
-    usage: /skills [challenges|achievements|prestige]
+    description: Skillmenü und Infos öffnen.
+    usage: /skills [challenges|achievements|prestige|info|reload]
     aliases: [skill, ability]
 permissions:
   zbenskills.use:
     default: true
-    description: Allows opening the skills menu.
+    description: Erlaubt Zugriff auf das Skill-Menü und Skill-Infos.
+  zbenskills.admin:
+    default: op
+    description: Erlaubt das Neuladen der Config.

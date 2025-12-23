@@ -5,6 +5,7 @@
 - Erz-Adern sowie optionale Steinadern können in einem Rutsch abgebaut werden.
 - Sneak-Anforderung (konfigurierbar) und Block-Limit pro Aktion zur Performancekontrolle.
 - Separate Permissions für Holz, Erze und Steinadern.
+- Blätterabbau pro Spieler umschaltbar und persistiert; Haltbarkeit berücksichtigt Unbreaking und Werkzeugbruch korrekt.
 
 ## Quickstart
 1. Jar in `plugins/` legen und Server starten.
@@ -24,7 +25,10 @@
 | `requireSneak` | Nur bei gedrücktem Sneak aktiv. | true |
 
 ## Commands
-Keine Befehle vorhanden.
+| Command | Beschreibung | Permission |
+| --- | --- | --- |
+| `/timber leaves [on|off]` | Blätterabbau für dich an/aus oder toggle. | (keine) |
+| `/timber reload` | Konfiguration neu laden. | `zbentimber.admin` |
 
 ## Permissions
 - `zbentimber.tree` – Baum- und Blätterabbau erlauben (Default: true).
