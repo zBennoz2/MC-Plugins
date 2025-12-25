@@ -2,6 +2,7 @@ package com.zbennoz.zbencoins.gui;
 
 import com.zbennoz.zbencoins.ZBenCoinsPlugin;
 import com.zbennoz.zbencoins.service.CoinService;
+import com.zbennoz.zbencoins.service.MarketService;
 import com.zbennoz.zbencoins.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,10 +22,12 @@ public class MarktMainGui implements ManagedGui {
     private final Inventory inventory;
     private final CoinService coinService;
     private final ZBenCoinsPlugin plugin;
+    private final MarketService marketService;
 
-    public MarktMainGui(ZBenCoinsPlugin plugin, CoinService coinService, Player player) {
+    public MarktMainGui(ZBenCoinsPlugin plugin, CoinService coinService, MarketService marketService, Player player) {
         this.plugin = plugin;
         this.coinService = coinService;
+        this.marketService = marketService;
         FileConfiguration config = plugin.getConfigManager().getConfig();
         String title = Text.colorize(config.getString("gui.title", "ZBenMarkt"));
         this.inventory = Bukkit.createInventory(this, 27, title);
@@ -42,7 +45,7 @@ public class MarktMainGui implements ManagedGui {
 
         ItemStack markt = new GuiItemBuilder(Material.CHEST)
                 .name("&6Marktplatz")
-                .lore(List.of("&7Durchstöbere Angebote", "&eKommt bald"))
+                .lore(List.of("&7Durchstöbere Angebote"))
                 .build();
 
         ItemStack jobs = new GuiItemBuilder(Material.EMERALD)
@@ -52,7 +55,7 @@ public class MarktMainGui implements ManagedGui {
 
         ItemStack anbieten = new GuiItemBuilder(Material.ANVIL)
                 .name("&bAnbieten")
-                .lore(List.of("&7Stelle eigene Angebote ein", "&eKommt bald"))
+                .lore(List.of("&7Stelle eigene Angebote ein"))
                 .build();
 
         ItemStack info = new GuiItemBuilder(Material.BOOK)
@@ -84,8 +87,10 @@ public class MarktMainGui implements ManagedGui {
         }
         int slot = event.getRawSlot();
         switch (slot) {
+            case 11 -> plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, 0));
+            case 14 -> plugin.getGuiManager().openGui(player, new OfferCreateGui(plugin, marketService, player));
             case 15 -> plugin.getGuiManager().openGui(player, new MarktInfoGui(plugin, coinService, player));
-            case 11, 12, 14 -> player.sendMessage(plugin.getConfigManager().message("menu-soon"));
+            case 12 -> player.sendMessage(plugin.getConfigManager().message("menu-soon"));
             case 22 -> player.closeInventory();
             default -> {
             }

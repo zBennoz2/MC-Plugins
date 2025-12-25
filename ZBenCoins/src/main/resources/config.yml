@@ -11,3 +11,6 @@ listing-fee:
   enabled: false
   flat: 0
   percent: 0
+market:
+  default-duration-hours: 24
+  default-limit: 3

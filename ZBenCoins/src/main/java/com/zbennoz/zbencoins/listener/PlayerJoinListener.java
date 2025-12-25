@@ -2,6 +2,7 @@ package com.zbennoz.zbencoins.listener;
 
 import com.zbennoz.zbencoins.ZBenCoinsPlugin;
 import com.zbennoz.zbencoins.database.PlayerRecord;
+import com.zbennoz.zbencoins.service.MarketService;
 import com.zbennoz.zbencoins.service.PlayerService;
 import com.zbennoz.zbencoins.util.Text;
 import org.bukkit.event.EventHandler;
@@ -17,9 +18,11 @@ public class PlayerJoinListener implements Listener {
 
     private final PlayerService playerService;
     private final ZBenCoinsPlugin plugin;
+    private final MarketService marketService;
 
-    public PlayerJoinListener(PlayerService playerService, ZBenCoinsPlugin plugin) {
+    public PlayerJoinListener(PlayerService playerService, MarketService marketService, ZBenCoinsPlugin plugin) {
         this.playerService = playerService;
+        this.marketService = marketService;
         this.plugin = plugin;
     }
 
@@ -32,5 +35,6 @@ public class PlayerJoinListener implements Listener {
                     "amount", String.valueOf(record.getCoins())
             )));
         }
+        marketService.deliverPending(event.getPlayer());
     }
 }

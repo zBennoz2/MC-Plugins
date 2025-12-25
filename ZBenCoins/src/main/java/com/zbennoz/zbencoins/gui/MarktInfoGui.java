@@ -68,7 +68,7 @@ public class MarktInfoGui implements ManagedGui {
         }
         if (event.getRawSlot() == 22) {
             player.closeInventory();
-            plugin.getGuiManager().openGui(player, new MarktMainGui(plugin, coinService, player));
+            plugin.getGuiManager().openGui(player, new MarktMainGui(plugin, coinService, plugin.getMarketService(), player));
         }
     }
 }

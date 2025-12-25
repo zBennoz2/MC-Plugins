@@ -28,7 +28,7 @@ public class MarktCommand implements CommandExecutor {
             player.sendMessage(plugin.getConfigManager().message("no-permission"));
             return true;
         }
-        plugin.getGuiManager().openGui(player, new MarktMainGui(plugin, plugin.getCoinService(), player));
+        plugin.getGuiManager().openGui(player, new MarktMainGui(plugin, plugin.getCoinService(), plugin.getMarketService(), player));
         player.sendMessage(plugin.getConfigManager().message("market-open"));
         return true;
     }

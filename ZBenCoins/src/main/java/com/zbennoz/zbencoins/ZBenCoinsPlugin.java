@@ -10,7 +10,11 @@ import com.zbennoz.zbencoins.database.PlayerDao;
 import com.zbennoz.zbencoins.database.TransactionDao;
 import com.zbennoz.zbencoins.gui.GuiManager;
 import com.zbennoz.zbencoins.listener.PlayerJoinListener;
+import com.zbennoz.zbencoins.listener.MarketChatListener;
+import com.zbennoz.zbencoins.market.MarketLogDao;
+import com.zbennoz.zbencoins.market.OfferDao;
 import com.zbennoz.zbencoins.service.CoinService;
+import com.zbennoz.zbencoins.service.MarketService;
 import com.zbennoz.zbencoins.service.PlayerService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,6 +31,7 @@ public class ZBenCoinsPlugin extends JavaPlugin {
     private Database database;
     private PlayerService playerService;
     private CoinService coinService;
+    private MarketService marketService;
     private GuiManager guiManager;
 
     @Override
@@ -45,8 +50,11 @@ public class ZBenCoinsPlugin extends JavaPlugin {
 
         PlayerDao playerDao = new PlayerDao(database.getConnection());
         TransactionDao transactionDao = new TransactionDao(database.getConnection());
+        OfferDao offerDao = new OfferDao(database.getConnection());
+        MarketLogDao marketLogDao = new MarketLogDao(database.getConnection());
         playerService = new PlayerService(this, playerDao, configManager.getConfig());
         coinService = new CoinService(this, playerDao, transactionDao);
+        marketService = new MarketService(this, offerDao, marketLogDao, playerDao, transactionDao, database.getConnection());
 
         guiManager = new GuiManager();
 
@@ -62,8 +70,9 @@ public class ZBenCoinsPlugin extends JavaPlugin {
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(playerService, this), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(playerService, marketService, this), this);
         Bukkit.getPluginManager().registerEvents(guiManager, this);
+        Bukkit.getPluginManager().registerEvents(new MarketChatListener(marketService), this);
     }
 
     @Override
@@ -82,6 +91,10 @@ public class ZBenCoinsPlugin extends JavaPlugin {
 
     public CoinService getCoinService() {
         return coinService;
+    }
+
+    public MarketService getMarketService() {
+        return marketService;
     }
 
     public GuiManager getGuiManager() {
