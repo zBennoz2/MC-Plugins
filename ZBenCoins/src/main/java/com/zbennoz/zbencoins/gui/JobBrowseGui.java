@@ -4,6 +4,7 @@ import com.zbennoz.zbencoins.ZBenCoinsPlugin;
 import com.zbennoz.zbencoins.job.JobRecord;
 import com.zbennoz.zbencoins.job.JobQueryOptions;
 import com.zbennoz.zbencoins.job.JobType;
+import com.zbennoz.zbencoins.job.JobStatus;
 import com.zbennoz.zbencoins.service.JobService;
 import com.zbennoz.zbencoins.util.Text;
 import org.bukkit.Bukkit;

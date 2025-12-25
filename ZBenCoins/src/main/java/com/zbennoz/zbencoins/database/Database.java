@@ -25,7 +25,7 @@ public class Database {
     public void connect() throws SQLException {
         File dbFile = new File(plugin.getDataFolder(), "data.db");
         SQLiteConfig config = new SQLiteConfig();
-        config.setBusyTimeout("5000");
+        config.setBusyTimeout(5000);
         config.setJournalMode(SQLiteConfig.JournalMode.WAL);
         String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
         connection = DriverManager.getConnection(url, config.toProperties());
