@@ -1,0 +1,42 @@
+name: ZBenCoins
+main: com.zbennoz.zbencoins.ZBenCoinsPlugin
+version: 0.1.0
+author: ZBenNoz
+api-version: '1.21'
+depend: []
+commands:
+  markt:
+    description: Öffnet den ZBenMarkt.
+    usage: /markt
+    permission: zbencoins.market.use
+  coins:
+    description: Zeigt den Kontostand an.
+    usage: /coins [spieler]
+    permission: zbencoins.coins.use
+  pay:
+    description: Sende Coins an einen Spieler.
+    usage: /pay <spieler> <betrag>
+    permission: zbencoins.pay.use
+  baltop:
+    description: Zeigt die reichsten Spieler.
+    usage: /baltop
+    permission: zbencoins.baltop.use
+permissions:
+  zbencoins.market.use:
+    description: Erlaube das Öffnen des Markt GUIs.
+    default: true
+  zbencoins.coins.use:
+    description: Erlaube das Abfragen des eigenen Kontostands.
+    default: true
+  zbencoins.coins.others:
+    description: Erlaube das Abfragen von fremden Kontoständen.
+    default: op
+  zbencoins.pay.use:
+    description: Erlaube das Versenden von Coins.
+    default: true
+  zbencoins.baltop.use:
+    description: Erlaube das Anzeigen der reichsten Spieler.
+    default: true
+  zbencoins.admin:
+    description: Adminrechte für zukünftige Features.
+    default: op
