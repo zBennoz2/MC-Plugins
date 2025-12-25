@@ -54,6 +54,33 @@ public class Database {
                     "created_at INTEGER)"
             );
             stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_transactions_uuid ON transactions(uuid)");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS market_offers (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "seller_uuid TEXT NOT NULL, " +
+                    "seller_name TEXT NOT NULL, " +
+                    "buyer_uuid TEXT, " +
+                    "item_data TEXT NOT NULL, " +
+                    "amount INTEGER NOT NULL, " +
+                    "price INTEGER NOT NULL, " +
+                    "status TEXT NOT NULL, " +
+                    "expires_at INTEGER NOT NULL, " +
+                    "created_at INTEGER NOT NULL, " +
+                    "delivered INTEGER NOT NULL DEFAULT 0)"
+            );
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_market_offers_status ON market_offers(status)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_market_offers_seller ON market_offers(seller_uuid)");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS market_logs (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "offer_id INTEGER NOT NULL, " +
+                    "action TEXT NOT NULL, " +
+                    "actor_uuid TEXT, " +
+                    "actor_name TEXT, " +
+                    "note TEXT, " +
+                    "created_at INTEGER NOT NULL)"
+            );
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_market_logs_offer ON market_logs(offer_id)");
         }
     }
 
