@@ -35,6 +35,7 @@ public class MarketService {
     private final PlayerDao playerDao;
     private final TransactionDao transactionDao;
     private final Connection connection;
+
     private final Map<UUID, OfferDraft> drafts = new ConcurrentHashMap<>();
     private final Map<UUID, MarketInput> awaitingInput = new ConcurrentHashMap<>();
     private final Map<UUID, MarketQueryOptions> browseOptions = new ConcurrentHashMap<>();
@@ -44,8 +45,12 @@ public class MarketService {
         SEARCH
     }
 
-    public MarketService(ZBenCoinsPlugin plugin, OfferDao offerDao, MarketLogDao logDao, PlayerDao playerDao,
-                         TransactionDao transactionDao, Connection connection) {
+    public MarketService(ZBenCoinsPlugin plugin,
+                         OfferDao offerDao,
+                         MarketLogDao logDao,
+                         PlayerDao playerDao,
+                         TransactionDao transactionDao,
+                         Connection connection) {
         this.plugin = plugin;
         this.offerDao = offerDao;
         this.logDao = logDao;
@@ -56,8 +61,12 @@ public class MarketService {
     }
 
     public OfferDraft createDraft(Player player, ItemStack baseItem) {
-        OfferDraft draft = new OfferDraft(baseItem.clone(), baseItem.getAmount(), 0L,
-                Instant.now().plus(plugin.getConfig().getInt("market.default-duration-hours", 24), ChronoUnit.HOURS));
+        OfferDraft draft = new OfferDraft(
+                baseItem.clone(),
+                baseItem.getAmount(),
+                0L,
+                Instant.now().plus(plugin.getConfig().getInt("market.default-duration-hours", 24), ChronoUnit.HOURS)
+        );
         drafts.put(player.getUniqueId(), draft);
         return draft;
     }
@@ -88,13 +97,14 @@ public class MarketService {
         try {
             List<OfferRecord> offers = offerDao.findAllActive();
             String term = options.getSearchTerm().toLowerCase(Locale.ROOT);
-            offers = offers.stream()
+
+            return offers.stream()
                     .filter(offer -> term.isBlank() || matchesSearch(offer, term))
                     .filter(offer -> !options.isOnlineOnly() || Bukkit.getPlayer(offer.getSellerUuid()) != null)
                     .filter(offer -> options.getCategory().matches(offer.getItem()))
                     .sorted(resolveComparator(options))
                     .toList();
-            return offers;
+
         } catch (SQLException | IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Konnte Angebote nicht filtern", e);
             return List.of();
@@ -131,9 +141,8 @@ public class MarketService {
 
     public boolean handleChat(Player player, String message) {
         MarketInput input = awaitingInput.remove(player.getUniqueId());
-        if (input == null) {
-            return false;
-        }
+        if (input == null) return false;
+
         if (input == MarketInput.PRICE) {
             try {
                 long price = Long.parseLong(message.trim());
@@ -150,9 +159,11 @@ public class MarketService {
             }
             return true;
         }
+
         MarketQueryOptions options = getBrowseOptions(player.getUniqueId());
         options.setSearchTerm(message);
         options.setPage(0);
+
         player.sendMessage(Text.colorize("&aSuche aktualisiert."));
         Bukkit.getScheduler().runTask(plugin, () ->
                 plugin.getGuiManager().openGui(player,
@@ -168,33 +179,44 @@ public class MarketService {
 
     public Optional<OfferRecord> publishOffer(Player player) {
         Optional<OfferDraft> optionalDraft = getDraft(player);
-        if (optionalDraft.isEmpty()) {
-            return Optional.empty();
-        }
+        if (optionalDraft.isEmpty()) return Optional.empty();
+
         OfferDraft draft = optionalDraft.get();
         if (draft.getPrice() <= 0 || draft.getAmount() <= 0) {
             player.sendMessage(plugin.getConfigManager().message("offer-missing-data"));
             return Optional.empty();
         }
+
         ItemStack template = draft.getItem().clone();
         template.setAmount(1);
+
         if (!InventoryUtil.hasEnough(player, template, draft.getAmount())) {
             player.sendMessage(plugin.getConfigManager().message("not-enough-items"));
             return Optional.empty();
         }
+
         if (!InventoryUtil.remove(player, template, draft.getAmount())) {
             player.sendMessage(plugin.getConfigManager().message("not-enough-items"));
             return Optional.empty();
         }
+
         ItemStack escrowItem = draft.getItem().clone();
         escrowItem.setAmount(draft.getAmount());
+
         try {
-            OfferRecord record = offerDao.insert(player.getUniqueId(), player.getName(), escrowItem, draft.getAmount(), draft.getPrice(),
-                    draft.getExpiresAt());
+            OfferRecord record = offerDao.insert(
+                    player.getUniqueId(),
+                    player.getName(),
+                    escrowItem,
+                    draft.getAmount(),
+                    draft.getPrice(),
+                    draft.getExpiresAt()
+            );
             logDao.log(record.getId(), "CREATE", player.getUniqueId(), player.getName(), "Angebot erstellt");
             player.sendMessage(plugin.getConfigManager().message("offer-created"));
             clearDraft(player);
             return Optional.of(record);
+
         } catch (SQLException | IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Konnte Angebot nicht speichern", e);
             player.sendMessage(plugin.getConfigManager().message("error"));
@@ -206,29 +228,36 @@ public class MarketService {
         if (record.getSellerUuid().equals(buyer.getUniqueId())) {
             return Optional.of(plugin.getConfigManager().message("buy-own"));
         }
+
         long balance = plugin.getCoinService().getBalance(buyer.getUniqueId());
         if (balance < record.getPrice()) {
             return Optional.of(plugin.getConfigManager().message("not-enough-coins"));
         }
+
         try {
             connection.setAutoCommit(false);
+
             if (!offerDao.reserveForPurchase(record.getId(), buyer.getUniqueId())) {
                 connection.rollback();
                 connection.setAutoCommit(true);
                 return Optional.of(plugin.getConfigManager().message("offer-not-available"));
             }
+
             playerDao.addCoins(buyer.getUniqueId(), -record.getPrice());
             playerDao.addCoins(record.getSellerUuid(), record.getPrice());
+
             transactionDao.insert(buyer.getUniqueId(), "MARKET_BUY", -record.getPrice(), "Kauf Angebot #" + record.getId());
-            transactionDao.insert(record.getSellerUuid(), "MARKET_SELL", record.getPrice(),
-                    "Verkauf an " + buyer.getName());
+            transactionDao.insert(record.getSellerUuid(), "MARKET_SELL", record.getPrice(), "Verkauf an " + buyer.getName());
+
             connection.commit();
             connection.setAutoCommit(true);
+
             InventoryUtil.giveItem(buyer, record.getItem());
             logDao.log(record.getId(), "BUY", buyer.getUniqueId(), buyer.getName(), "gekauft");
             notifySeller(record);
             return Optional.empty();
-        } catch (SQLException | IOException e) {
+
+        } catch (SQLException e) {
             try {
                 connection.rollback();
                 connection.setAutoCommit(true);
@@ -248,18 +277,16 @@ public class MarketService {
     }
 
     public boolean cancel(Player seller, OfferRecord record) {
-        if (!record.getSellerUuid().equals(seller.getUniqueId())) {
-            return false;
-        }
-        if (record.getStatus() != OfferStatus.ACTIVE) {
-            return false;
-        }
+        if (!record.getSellerUuid().equals(seller.getUniqueId())) return false;
+        if (record.getStatus() != OfferStatus.ACTIVE) return false;
+
         try {
             offerDao.markStatus(record.getId(), OfferStatus.CANCELLED, null, false);
             InventoryUtil.giveItem(seller, record.getItem());
             offerDao.markDelivered(record.getId());
             logDao.log(record.getId(), "CANCEL", seller.getUniqueId(), seller.getName(), "manuell beendet");
             return true;
+
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Konnte Angebot nicht abbrechen", e);
             return false;
@@ -269,9 +296,8 @@ public class MarketService {
     public void deliverPending(Player player) {
         try {
             for (OfferRecord record : offerDao.findExpiredUndelivered()) {
-                if (!record.getSellerUuid().equals(player.getUniqueId())) {
-                    continue;
-                }
+                if (!record.getSellerUuid().equals(player.getUniqueId())) continue;
+
                 InventoryUtil.giveItem(player, record.getItem());
                 offerDao.markDelivered(record.getId());
                 player.sendMessage(plugin.getConfigManager().message("offer-returned"));
@@ -289,6 +315,7 @@ public class MarketService {
                     for (OfferRecord record : offerDao.findExpiredActive()) {
                         offerDao.markStatus(record.getId(), OfferStatus.EXPIRED, null, false);
                         logDao.log(record.getId(), "EXPIRE", null, null, "Automatisch abgelaufen");
+
                         Player seller = Bukkit.getPlayer(record.getSellerUuid());
                         if (seller != null) {
                             InventoryUtil.giveItem(seller, record.getItem());
@@ -316,29 +343,12 @@ public class MarketService {
             this.expiresAt = expiresAt;
         }
 
-        public ItemStack getItem() {
-            return item;
-        }
-
-        public int getAmount() {
-            return amount;
-        }
-
-        public long getPrice() {
-            return price;
-        }
-
-        public Instant getExpiresAt() {
-            return expiresAt;
-        }
-
-        public void setAmount(int amount) {
-            this.amount = amount;
-        }
-
-        public void setPrice(long price) {
-            this.price = price;
-        }
+        public ItemStack getItem() { return item; }
+        public int getAmount() { return amount; }
+        public long getPrice() { return price; }
+        public Instant getExpiresAt() { return expiresAt; }
+        public void setAmount(int amount) { this.amount = amount; }
+        public void setPrice(long price) { this.price = price; }
     }
 
     public int countActive(UUID uuid) {
@@ -351,9 +361,8 @@ public class MarketService {
     }
 
     public int resolveMaxOffers(Player player) {
-        if (player.hasPermission("zbencoins.market.limit.bypass")) {
-            return Integer.MAX_VALUE;
-        }
+        if (player.hasPermission("zbencoins.market.limit.bypass")) return Integer.MAX_VALUE;
+
         int max = plugin.getConfig().getInt("market.default-limit", 3);
         for (int i = 1; i <= 64; i++) {
             if (player.hasPermission("zbencoins.market.limit." + i)) {

@@ -6,6 +6,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,12 +53,16 @@ public class GuiItemBuilder {
     }
 
     public GuiItemBuilder glow(boolean glow) {
-        if (!glow) {
-            return this;
-        }
+        if (!glow) return this;
+
         ItemMeta meta = stack.getItemMeta();
-        meta.addEnchant(Enchantment.DURABILITY, 1, true);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+
+        Enchantment ench = Registry.ENCHANTMENT.get(NamespacedKey.minecraft("unbreaking"));
+        if (ench != null) {
+            meta.addEnchant(ench, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+
         stack.setItemMeta(meta);
         return this;
     }
