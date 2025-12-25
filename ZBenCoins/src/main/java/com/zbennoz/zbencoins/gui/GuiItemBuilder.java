@@ -2,6 +2,7 @@ package com.zbennoz.zbencoins.gui;
 
 import com.zbennoz.zbencoins.util.Text;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -18,6 +19,10 @@ public class GuiItemBuilder {
 
     public GuiItemBuilder(Material material) {
         this.stack = new ItemStack(material);
+    }
+
+    public GuiItemBuilder(ItemStack base) {
+        this.stack = base.clone();
     }
 
     public GuiItemBuilder name(String name) {
@@ -41,6 +46,17 @@ public class GuiItemBuilder {
     public GuiItemBuilder hideFlags() {
         ItemMeta meta = stack.getItemMeta();
         meta.addItemFlags(ItemFlag.values());
+        stack.setItemMeta(meta);
+        return this;
+    }
+
+    public GuiItemBuilder glow(boolean glow) {
+        if (!glow) {
+            return this;
+        }
+        ItemMeta meta = stack.getItemMeta();
+        meta.addEnchant(Enchantment.LUCK, 1, true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         stack.setItemMeta(meta);
         return this;
     }

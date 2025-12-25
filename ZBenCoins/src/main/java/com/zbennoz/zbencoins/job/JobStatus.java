@@ -6,6 +6,7 @@ package com.zbennoz.zbencoins.job;
 public enum JobStatus {
     OFFEN,
     ANGENOMMEN,
+    ABSCHLUSS_OFFEN,
     ABGESCHLOSSEN,
     ABGEBROCHEN,
     ABGELAUFEN
