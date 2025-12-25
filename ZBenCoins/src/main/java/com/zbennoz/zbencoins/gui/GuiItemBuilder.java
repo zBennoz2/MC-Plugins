@@ -55,7 +55,7 @@ public class GuiItemBuilder {
             return this;
         }
         ItemMeta meta = stack.getItemMeta();
-        meta.addEnchant(Enchantment.LUCK, 1, true);
+        meta.addEnchant(Enchantment.DURABILITY, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         stack.setItemMeta(meta);
         return this;
