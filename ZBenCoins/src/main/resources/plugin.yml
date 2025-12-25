@@ -40,3 +40,12 @@ permissions:
   zbencoins.admin:
     description: Adminrechte für zukünftige Features.
     default: op
+  zbencoins.jobs.create:
+    description: Erlaube das Erstellen von Jobs.
+    default: true
+  zbencoins.jobs.accept:
+    description: Erlaube das Annehmen von Jobs.
+    default: true
+  zbencoins.jobs.admin:
+    description: Verwaltungsrechte für Jobs.
+    default: op

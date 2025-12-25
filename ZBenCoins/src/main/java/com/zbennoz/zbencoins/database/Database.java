@@ -81,6 +81,38 @@ public class Database {
                     "created_at INTEGER NOT NULL)"
             );
             stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_market_logs_offer ON market_logs(offer_id)");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS jobs (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "type TEXT NOT NULL, " +
+                    "title TEXT NOT NULL, " +
+                    "description TEXT NOT NULL, " +
+                    "reward INTEGER NOT NULL, " +
+                    "creator_uuid TEXT NOT NULL, " +
+                    "creator_name TEXT NOT NULL, " +
+                    "assignee_uuid TEXT, " +
+                    "assignee_name TEXT, " +
+                    "status TEXT NOT NULL, " +
+                    "expires_at INTEGER, " +
+                    "created_at INTEGER NOT NULL, " +
+                    "updated_at INTEGER NOT NULL, " +
+                    "item_type TEXT, " +
+                    "item_amount INTEGER NOT NULL DEFAULT 0, " +
+                    "completion_requested INTEGER NOT NULL DEFAULT 0" +
+                    ")");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_jobs_creator ON jobs(creator_uuid)");
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS job_logs (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "job_id INTEGER NOT NULL, " +
+                    "action TEXT NOT NULL, " +
+                    "actor_uuid TEXT, " +
+                    "actor_name TEXT, " +
+                    "note TEXT, " +
+                    "created_at INTEGER NOT NULL)"
+            );
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_job_logs_job ON job_logs(job_id)");
         }
     }
 

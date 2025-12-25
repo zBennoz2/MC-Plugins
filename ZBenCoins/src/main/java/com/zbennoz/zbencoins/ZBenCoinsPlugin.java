@@ -11,9 +11,13 @@ import com.zbennoz.zbencoins.database.TransactionDao;
 import com.zbennoz.zbencoins.gui.GuiManager;
 import com.zbennoz.zbencoins.listener.PlayerJoinListener;
 import com.zbennoz.zbencoins.listener.MarketChatListener;
+import com.zbennoz.zbencoins.listener.JobChatListener;
+import com.zbennoz.zbencoins.job.JobDao;
+import com.zbennoz.zbencoins.job.JobLogDao;
 import com.zbennoz.zbencoins.market.MarketLogDao;
 import com.zbennoz.zbencoins.market.OfferDao;
 import com.zbennoz.zbencoins.service.CoinService;
+import com.zbennoz.zbencoins.service.JobService;
 import com.zbennoz.zbencoins.service.MarketService;
 import com.zbennoz.zbencoins.service.PlayerService;
 import org.bukkit.Bukkit;
@@ -32,6 +36,7 @@ public class ZBenCoinsPlugin extends JavaPlugin {
     private PlayerService playerService;
     private CoinService coinService;
     private MarketService marketService;
+    private JobService jobService;
     private GuiManager guiManager;
 
     @Override
@@ -52,9 +57,12 @@ public class ZBenCoinsPlugin extends JavaPlugin {
         TransactionDao transactionDao = new TransactionDao(database.getConnection());
         OfferDao offerDao = new OfferDao(database.getConnection());
         MarketLogDao marketLogDao = new MarketLogDao(database.getConnection());
+        JobDao jobDao = new JobDao(database.getConnection());
+        JobLogDao jobLogDao = new JobLogDao(database.getConnection());
         playerService = new PlayerService(this, playerDao, configManager.getConfig());
         coinService = new CoinService(this, playerDao, transactionDao);
         marketService = new MarketService(this, offerDao, marketLogDao, playerDao, transactionDao, database.getConnection());
+        jobService = new JobService(this, jobDao, jobLogDao, playerDao, transactionDao, database.getConnection());
 
         guiManager = new GuiManager();
 
@@ -73,6 +81,7 @@ public class ZBenCoinsPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(playerService, marketService, this), this);
         Bukkit.getPluginManager().registerEvents(guiManager, this);
         Bukkit.getPluginManager().registerEvents(new MarketChatListener(marketService), this);
+        Bukkit.getPluginManager().registerEvents(new JobChatListener(jobService), this);
     }
 
     @Override
@@ -99,5 +108,9 @@ public class ZBenCoinsPlugin extends JavaPlugin {
 
     public GuiManager getGuiManager() {
         return guiManager;
+    }
+
+    public JobService getJobService() {
+        return jobService;
     }
 }
