@@ -9,6 +9,7 @@ import com.zbennoz.zbencoins.market.OfferDao;
 import com.zbennoz.zbencoins.market.OfferRecord;
 import com.zbennoz.zbencoins.market.OfferStatus;
 import com.zbennoz.zbencoins.util.InventoryUtil;
+import com.zbennoz.zbencoins.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

@@ -23,6 +23,27 @@ public final class Text {
         return ChatColor.translateAlternateColorCodes('&', input);
     }
 
+    /**
+     * Alias für {@link #colorize(String)}.
+     */
+    public static String c(String input) {
+        return colorize(input);
+    }
+
+    /**
+     * Alias für {@link #colorize(String)}.
+     */
+    public static String color(String input) {
+        return colorize(input);
+    }
+
+    /**
+     * Alias für {@link #colorize(String)} zur besseren Lesbarkeit in Chat-Nachrichten.
+     */
+    public static String msg(String input) {
+        return colorize(input);
+    }
+
     public static String format(String input, Map<String, String> placeholders) {
         String result = input;
         if (placeholders != null) {
