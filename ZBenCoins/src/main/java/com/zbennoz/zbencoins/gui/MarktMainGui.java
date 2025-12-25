@@ -50,7 +50,7 @@ public class MarktMainGui implements ManagedGui {
 
         ItemStack jobs = new GuiItemBuilder(Material.EMERALD)
                 .name("&aJobs")
-                .lore(List.of("&7Verdiene Coins", "&eKommt bald"))
+                .lore(List.of("&7Verdiene Coins", "&eNimm Aufträge an"))
                 .build();
 
         ItemStack anbieten = new GuiItemBuilder(Material.ANVIL)
@@ -90,7 +90,7 @@ public class MarktMainGui implements ManagedGui {
             case 11 -> plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, 0));
             case 14 -> plugin.getGuiManager().openGui(player, new OfferCreateGui(plugin, marketService, player));
             case 15 -> plugin.getGuiManager().openGui(player, new MarktInfoGui(plugin, coinService, player));
-            case 12 -> player.sendMessage(plugin.getConfigManager().message("menu-soon"));
+            case 12 -> plugin.getGuiManager().openGui(player, new JobsMainGui(plugin, plugin.getJobService()));
             case 22 -> player.closeInventory();
             default -> {
             }

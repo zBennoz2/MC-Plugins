@@ -14,3 +14,8 @@ listing-fee:
 market:
   default-duration-hours: 24
   default-limit: 3
+jobs:
+  default-expiry-hours: 48
+  default-max-creator: 5
+  default-max-assignee: 3
+  history-limit: 10
