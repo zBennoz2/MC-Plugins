@@ -64,7 +64,11 @@ public class JobsMainGui implements ManagedGui {
             return;
         }
         switch (event.getRawSlot()) {
-            case 11 -> plugin.getGuiManager().openGui(player, new JobBrowseGui(plugin, jobService, 0));
+            case 11 -> {
+                com.zbennoz.zbencoins.job.JobQueryOptions opts = jobService.getBrowseOptions(player.getUniqueId()).copy();
+                opts.setPage(0);
+                plugin.getGuiManager().openGui(player, new JobBrowseGui(plugin, jobService, opts, player));
+            }
             case 13 -> {
                 if (!player.hasPermission("zbencoins.jobs.create")) {
                     player.sendMessage(plugin.getConfigManager().message("no-permission"));

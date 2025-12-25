@@ -87,6 +87,21 @@ public class JobDao {
         }
     }
 
+    public synchronized List<JobRecord> findAllOpen() throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM jobs WHERE status = ? AND (expires_at IS NULL OR expires_at > ?)")) {
+            stmt.setString(1, JobStatus.OFFEN.name());
+            stmt.setLong(2, Instant.now().getEpochSecond());
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<JobRecord> jobs = new ArrayList<>();
+                while (rs.next()) {
+                    jobs.add(fromResult(rs));
+                }
+                return jobs;
+            }
+        }
+    }
+
     public synchronized List<JobRecord> findForCreator(UUID creator, JobStatus... statuses) throws SQLException {
         return findByField("creator_uuid", creator, statuses);
     }

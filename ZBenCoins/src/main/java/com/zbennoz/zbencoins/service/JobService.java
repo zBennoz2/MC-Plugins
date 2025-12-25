@@ -7,6 +7,7 @@ import com.zbennoz.zbencoins.job.JobDao;
 import com.zbennoz.zbencoins.job.JobLogDao;
 import com.zbennoz.zbencoins.job.JobRecord;
 import com.zbennoz.zbencoins.job.JobStatus;
+import com.zbennoz.zbencoins.job.JobQueryOptions;
 import com.zbennoz.zbencoins.job.JobType;
 import com.zbennoz.zbencoins.util.InventoryUtil;
 import com.zbennoz.zbencoins.util.Text;
@@ -37,6 +38,12 @@ public class JobService {
     private final Connection connection;
     private final Map<UUID, JobDraft> drafts = new ConcurrentHashMap<>();
     private final Map<UUID, DraftInput> awaitingInput = new ConcurrentHashMap<>();
+    private final Map<UUID, JobQueryOptions> browseOptions = new ConcurrentHashMap<>();
+    private final Map<UUID, BrowseInput> browseAwaiting = new ConcurrentHashMap<>();
+
+    private enum BrowseInput {
+        SEARCH
+    }
 
     public JobService(ZBenCoinsPlugin plugin, JobDao jobDao, JobLogDao logDao, PlayerDao playerDao,
                       TransactionDao transactionDao, Connection connection) {
@@ -66,6 +73,36 @@ public class JobService {
         awaitingInput.remove(player.getUniqueId());
     }
 
+    public JobQueryOptions getBrowseOptions(UUID playerId) {
+        return browseOptions.computeIfAbsent(playerId, id -> new JobQueryOptions());
+    }
+
+    public List<JobRecord> listFiltered(JobQueryOptions options) {
+        try {
+            List<JobRecord> jobs = jobDao.findAllOpen();
+            String term = options.getSearchTerm().toLowerCase(Locale.ROOT);
+            return jobs.stream()
+                    .filter(job -> term.isBlank() || job.getTitle().toLowerCase(Locale.ROOT).contains(term)
+                            || job.getDescription().toLowerCase(Locale.ROOT).contains(term))
+                    .filter(job -> options.getTypeFilter() == null || job.getType() == options.getTypeFilter())
+                    .filter(job -> options.getStatusFilter() == null || job.getStatus() == options.getStatusFilter())
+                    .sorted(resolveComparator(options))
+                    .toList();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Konnte Jobs nicht filtern", e);
+            return List.of();
+        }
+    }
+
+    private Comparator<JobRecord> resolveComparator(JobQueryOptions options) {
+        return switch (options.getSortOption()) {
+            case BELOHNUNG_ABSTEIGEND -> Comparator.comparingLong(JobRecord::getReward).reversed();
+            case BELOHNUNG_AUFSTEIGEND -> Comparator.comparingLong(JobRecord::getReward);
+            case ABLAUFEND -> Comparator.comparing(job -> Optional.ofNullable(job.getExpiresAt()).orElse(Instant.MAX));
+            case NEUESTE -> Comparator.comparing(JobRecord::getCreatedAt).reversed();
+        };
+    }
+
     public void requestInput(Player player, DraftInput input) {
         awaitingInput.put(player.getUniqueId(), input);
         player.closeInventory();
@@ -73,6 +110,17 @@ public class JobService {
     }
 
     public boolean handleChat(Player player, String message) {
+        BrowseInput browseInput = browseAwaiting.remove(player.getUniqueId());
+        if (browseInput == BrowseInput.SEARCH) {
+            JobQueryOptions options = getBrowseOptions(player.getUniqueId());
+            options.setSearchTerm(message);
+            options.setPage(0);
+            player.sendMessage(Text.colorize("&aJobsuche gesetzt."));
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    plugin.getGuiManager().openGui(player,
+                            new com.zbennoz.zbencoins.gui.JobBrowseGui(plugin, this, options.copy(), player)));
+            return true;
+        }
         DraftInput input = awaitingInput.remove(player.getUniqueId());
         if (input == null) {
             return false;
@@ -93,6 +141,12 @@ public class JobService {
                 plugin.getGuiManager().openGui(player,
                         new com.zbennoz.zbencoins.gui.JobCreateGui(plugin, this, player)));
         return true;
+    }
+
+    public void requestBrowseSearch(Player player) {
+        browseAwaiting.put(player.getUniqueId(), BrowseInput.SEARCH);
+        player.sendMessage(Text.colorize("&eGib einen Titel oder eine Beschreibung zur Suche ein."));
+        player.closeInventory();
     }
 
     private void handleReward(Player player, JobDraft draft, String message) {

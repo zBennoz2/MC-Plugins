@@ -22,7 +22,7 @@ public class MarketChatListener implements Listener {
         if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-        boolean handled = marketService.handleChatPrice(player, event.getMessage());
+        boolean handled = marketService.handleChat(player, event.getMessage());
         if (handled) {
             event.setCancelled(true);
         }

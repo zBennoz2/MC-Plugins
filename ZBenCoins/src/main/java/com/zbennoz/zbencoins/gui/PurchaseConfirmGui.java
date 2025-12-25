@@ -63,7 +63,8 @@ public class PurchaseConfirmGui implements ManagedGui {
                         player.closeInventory();
                     });
         } else if (slot == 13) {
-            plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, 0));
+            com.zbennoz.zbencoins.market.MarketQueryOptions opts = marketService.getBrowseOptions(player.getUniqueId()).copy();
+            plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, opts, player));
         }
     }
 }

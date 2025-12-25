@@ -65,6 +65,21 @@ public class OfferDao {
         }
     }
 
+    public synchronized List<OfferRecord> findAllActive() throws SQLException, IOException {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM market_offers WHERE status = ? AND expires_at > ?")) {
+            stmt.setString(1, OfferStatus.ACTIVE.name());
+            stmt.setLong(2, Instant.now().getEpochSecond());
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<OfferRecord> offers = new ArrayList<>();
+                while (rs.next()) {
+                    offers.add(fromResult(rs));
+                }
+                return offers;
+            }
+        }
+    }
+
     public synchronized int countActive() throws SQLException {
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT COUNT(*) as cnt FROM market_offers WHERE status = ? AND expires_at > ?")) {

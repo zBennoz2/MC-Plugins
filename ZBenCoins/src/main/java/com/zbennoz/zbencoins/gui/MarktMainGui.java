@@ -87,7 +87,11 @@ public class MarktMainGui implements ManagedGui {
         }
         int slot = event.getRawSlot();
         switch (slot) {
-            case 11 -> plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, 0));
+            case 11 -> {
+                var opts = marketService.getBrowseOptions(player.getUniqueId()).copy();
+                opts.setPage(0);
+                plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, opts, player));
+            }
             case 14 -> plugin.getGuiManager().openGui(player, new OfferCreateGui(plugin, marketService, player));
             case 15 -> plugin.getGuiManager().openGui(player, new MarktInfoGui(plugin, coinService, player));
             case 12 -> plugin.getGuiManager().openGui(player, new JobsMainGui(plugin, plugin.getJobService()));
