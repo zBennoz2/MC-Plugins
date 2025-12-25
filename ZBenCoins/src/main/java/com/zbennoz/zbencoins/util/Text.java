@@ -59,4 +59,8 @@ public final class Text {
         }
         return lines;
     }
+
+    public static String strip(String input) {
+        return ChatColor.stripColor(colorize(input));
+    }
 }

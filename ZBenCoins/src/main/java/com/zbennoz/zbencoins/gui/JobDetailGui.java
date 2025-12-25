@@ -110,7 +110,8 @@ public class JobDetailGui implements ManagedGui {
         }
         int raw = event.getRawSlot();
         if (raw == 22) {
-            plugin.getGuiManager().openGui(player, new JobBrowseGui(plugin, jobService, 0));
+            com.zbennoz.zbencoins.job.JobQueryOptions opts = jobService.getBrowseOptions(player.getUniqueId()).copy();
+            plugin.getGuiManager().openGui(player, new JobBrowseGui(plugin, jobService, opts, player));
             return;
         }
         if (raw == 15 && record.getStatus() == JobStatus.OFFEN) {

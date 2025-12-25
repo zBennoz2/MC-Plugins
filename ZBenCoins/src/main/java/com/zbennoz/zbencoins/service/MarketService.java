@@ -4,6 +4,7 @@ import com.zbennoz.zbencoins.ZBenCoinsPlugin;
 import com.zbennoz.zbencoins.database.PlayerDao;
 import com.zbennoz.zbencoins.database.TransactionDao;
 import com.zbennoz.zbencoins.market.MarketLogDao;
+import com.zbennoz.zbencoins.market.MarketQueryOptions;
 import com.zbennoz.zbencoins.market.OfferDao;
 import com.zbennoz.zbencoins.market.OfferRecord;
 import com.zbennoz.zbencoins.market.OfferStatus;
@@ -34,7 +35,13 @@ public class MarketService {
     private final TransactionDao transactionDao;
     private final Connection connection;
     private final Map<UUID, OfferDraft> drafts = new ConcurrentHashMap<>();
-    private final Set<UUID> awaitingPrice = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, MarketInput> awaitingInput = new ConcurrentHashMap<>();
+    private final Map<UUID, MarketQueryOptions> browseOptions = new ConcurrentHashMap<>();
+
+    private enum MarketInput {
+        PRICE,
+        SEARCH
+    }
 
     public MarketService(ZBenCoinsPlugin plugin, OfferDao offerDao, MarketLogDao logDao, PlayerDao playerDao,
                          TransactionDao transactionDao, Connection connection) {
@@ -69,26 +76,46 @@ public class MarketService {
 
     public void clearDraft(Player player) {
         drafts.remove(player.getUniqueId());
-        awaitingPrice.remove(player.getUniqueId());
+        awaitingInput.remove(player.getUniqueId());
     }
 
-    public List<OfferRecord> listActive(int page, int pageSize) {
-        int offset = Math.max(page, 0) * pageSize;
+    public MarketQueryOptions getBrowseOptions(UUID playerId) {
+        return browseOptions.computeIfAbsent(playerId, id -> new MarketQueryOptions());
+    }
+
+    public List<OfferRecord> listFiltered(MarketQueryOptions options) {
         try {
-            return offerDao.findActive(pageSize, offset);
+            List<OfferRecord> offers = offerDao.findAllActive();
+            String term = options.getSearchTerm().toLowerCase(Locale.ROOT);
+            offers = offers.stream()
+                    .filter(offer -> term.isBlank() || matchesSearch(offer, term))
+                    .filter(offer -> !options.isOnlineOnly() || Bukkit.getPlayer(offer.getSellerUuid()) != null)
+                    .filter(offer -> options.getCategory().matches(offer.getItem()))
+                    .sorted(resolveComparator(options))
+                    .toList();
+            return offers;
         } catch (SQLException | IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Konnte aktive Angebote nicht laden", e);
+            plugin.getLogger().log(Level.SEVERE, "Konnte Angebote nicht filtern", e);
             return List.of();
         }
     }
 
-    public int countActiveOffers() {
-        try {
-            return offerDao.countActive();
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Konnte Angebotszahl nicht lesen", e);
-            return 0;
-        }
+    private Comparator<OfferRecord> resolveComparator(MarketQueryOptions options) {
+        return switch (options.getSortOption()) {
+            case PREIS_AUFSTEIGEND -> Comparator.comparingLong(OfferRecord::getPrice);
+            case PREIS_ABSTEIGEND -> Comparator.comparingLong(OfferRecord::getPrice).reversed();
+            case ABLAUFEND -> Comparator.comparing(OfferRecord::getExpiresAt);
+            case NEUESTE -> Comparator.comparing(OfferRecord::getCreatedAt).reversed();
+        };
+    }
+
+    private boolean matchesSearch(OfferRecord offer, String term) {
+        String itemName = offer.getItem().getType().name().toLowerCase(Locale.ROOT);
+        String display = offer.getItem().getItemMeta() != null && offer.getItem().getItemMeta().hasDisplayName()
+                ? Text.strip(offer.getItem().getItemMeta().getDisplayName()).toLowerCase(Locale.ROOT)
+                : "";
+        String seller = offer.getSellerName().toLowerCase(Locale.ROOT);
+        return itemName.contains(term) || display.contains(term) || seller.contains(term);
     }
 
     public void setAmount(Player player, int amount) {
@@ -96,30 +123,46 @@ public class MarketService {
     }
 
     public void requestPriceInput(Player player) {
-        awaitingPrice.add(player.getUniqueId());
+        awaitingInput.put(player.getUniqueId(), MarketInput.PRICE);
         player.sendMessage(plugin.getConfigManager().message("enter-price"));
         player.closeInventory();
     }
 
-    public boolean handleChatPrice(Player player, String message) {
-        if (!awaitingPrice.contains(player.getUniqueId())) {
+    public boolean handleChat(Player player, String message) {
+        MarketInput input = awaitingInput.remove(player.getUniqueId());
+        if (input == null) {
             return false;
         }
-        awaitingPrice.remove(player.getUniqueId());
-        try {
-            long price = Long.parseLong(message.trim());
-            if (price <= 0) {
+        if (input == MarketInput.PRICE) {
+            try {
+                long price = Long.parseLong(message.trim());
+                if (price <= 0) {
+                    player.sendMessage(plugin.getConfigManager().message("invalid-amount"));
+                    return true;
+                }
+                getDraft(player).ifPresent(draft -> draft.setPrice(price));
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        plugin.getGuiManager().openGui(player,
+                                new com.zbennoz.zbencoins.gui.OfferCreateGui(plugin, this, player)));
+            } catch (NumberFormatException e) {
                 player.sendMessage(plugin.getConfigManager().message("invalid-amount"));
-                return true;
             }
-            getDraft(player).ifPresent(draft -> draft.setPrice(price));
-            Bukkit.getScheduler().runTask(plugin, () ->
-                    plugin.getGuiManager().openGui(player,
-                            new com.zbennoz.zbencoins.gui.OfferCreateGui(plugin, this, player)));
-        } catch (NumberFormatException e) {
-            player.sendMessage(plugin.getConfigManager().message("invalid-amount"));
+            return true;
         }
+        MarketQueryOptions options = getBrowseOptions(player.getUniqueId());
+        options.setSearchTerm(message);
+        options.setPage(0);
+        player.sendMessage(Text.colorize("&aSuche aktualisiert."));
+        Bukkit.getScheduler().runTask(plugin, () ->
+                plugin.getGuiManager().openGui(player,
+                        new com.zbennoz.zbencoins.gui.MarketBrowseGui(plugin, this, options.copy(), player)));
         return true;
+    }
+
+    public void requestSearch(Player player) {
+        awaitingInput.put(player.getUniqueId(), MarketInput.SEARCH);
+        player.sendMessage(Text.colorize("&eGib den Suchbegriff im Chat ein (Item oder Verkäufer)."));
+        player.closeInventory();
     }
 
     public Optional<OfferRecord> publishOffer(Player player) {
