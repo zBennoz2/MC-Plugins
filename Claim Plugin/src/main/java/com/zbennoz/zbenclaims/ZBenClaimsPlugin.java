@@ -1,10 +1,12 @@
 package com.zbennoz.zbenclaims;
 
 import com.zbennoz.zbenclaims.commands.*;
+import com.zbennoz.zbenclaims.borders.BordersService;
 import com.zbennoz.zbenclaims.db.Database;
 import com.zbennoz.zbenclaims.db.SQLiteDatabase;
 import com.zbennoz.zbenclaims.listeners.ProtectionListener;
 import com.zbennoz.zbenclaims.listeners.AutoSortListener;
+import com.zbennoz.zbenclaims.listeners.ExplosionsListener;
 import com.zbennoz.zbenclaims.ranks.RankManager;
 import com.zbennoz.zbenclaims.display.TabBrandingManager;
 import org.bukkit.command.PluginCommand;
@@ -19,6 +21,7 @@ public class ZBenClaimsPlugin extends JavaPlugin {
     private MessageService messages;
     private RankManager rankManager;
     private TabBrandingManager tabBrandingManager;
+    private BordersService bordersService;
 
     @Override
     public void onEnable() {
@@ -34,6 +37,9 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         this.claimService = new ClaimService(this, database, messages, rankManager);
         this.claimService.loadCache();
 
+        this.bordersService = new BordersService(this, claimService);
+        this.bordersService.reload();
+
         registerCommands();
         registerListeners();
 
@@ -46,6 +52,7 @@ public class ZBenClaimsPlugin extends JavaPlugin {
     public void onDisable() {
         if (claimService != null) claimService.shutdown();
         if (database != null) database.close();
+        if (bordersService != null) bordersService.stop();
     }
 
     public Database getDatabase() { return database; }
@@ -53,6 +60,7 @@ public class ZBenClaimsPlugin extends JavaPlugin {
     public MessageService getMessages() { return messages; }
     public RankManager getRankManager() { return rankManager; }
     public TabBrandingManager getTabBrandingManager() { return tabBrandingManager; }
+    public BordersService getBordersService() { return bordersService; }
 
     public <T> Optional<T> getService(Class<T> clazz) {
         var registration = getServer().getServicesManager().getRegistration(clazz);
@@ -66,6 +74,7 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         rankManager.reload();
         claimService.reload();
         tabBrandingManager.applyAll();
+        bordersService.reload();
     }
 
     private void registerCommands() {
@@ -77,6 +86,7 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         setExec("zbenclaims", new AdminCommand(this));
         setExec("rank", new RankCommand(this));
         setExec("ranks", new RanksCommand(this));
+        setExec("claimborders", new ClaimBordersCommand(this));
     }
 
     private void setExec(String name, Object executor) {
@@ -94,5 +104,7 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(rankManager, this);
         getServer().getPluginManager().registerEvents(tabBrandingManager, this);
         getServer().getPluginManager().registerEvents(new AutoSortListener(this), this);
+        getServer().getPluginManager().registerEvents(new ExplosionsListener(this, claimService), this);
+        getServer().getPluginManager().registerEvents(bordersService, this);
     }
 }

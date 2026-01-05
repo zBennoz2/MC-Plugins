@@ -38,6 +38,11 @@ commands:
     description: Verwalte Claim-Ränge und deren Eigenschaften.
     usage: /ranks <list|info|create|delete|rename|set|addflag|removeflag|reload> ...
     permission: claim.admin
+  claimborders:
+    description: Zeigt Claim-Grenzen in der Umgebung an oder aus.
+    usage: /claimborders
+    aliases: [cborders, claimgrenzen]
+    permission: claim.borders.toggle
 
 permissions:
   zbenclaims.use:
@@ -52,3 +57,7 @@ permissions:
     default: op
   claim.autosort:
     default: true
+  claim.borders.toggle:
+    default: true
+  claim.borders.seeall:
+    default: op
