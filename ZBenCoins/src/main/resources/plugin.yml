@@ -9,6 +9,10 @@ commands:
     description: Öffnet den ZBenMarkt.
     usage: /markt
     permission: zbencoins.market.use
+  serveroffer:
+    description: Verwalte Server-Angebote.
+    usage: /serveroffer <create|delete|toggle|price|min|max> [...]
+    permission: zbencoins.admin.serveroffers
   coins:
     description: Zeigt den Kontostand an.
     usage: /coins [spieler]
@@ -24,6 +28,18 @@ commands:
 permissions:
   zbencoins.market.use:
     description: Erlaube das Öffnen des Markt GUIs.
+    default: true
+  zbencoins.market.create:
+    description: Erlaube das Erstellen eigener Spieler-Angebote.
+    default: true
+  zbencoins.market.buy:
+    description: Erlaube das Kaufen von Spieler-Angeboten.
+    default: true
+  zbencoins.market.search:
+    description: Erlaubt die Textsuche im Markt.
+    default: true
+  zbencoins.market.filter:
+    description: Erlaubt Filter und Sortierung im Markt.
     default: true
   zbencoins.coins.use:
     description: Erlaube das Abfragen des eigenen Kontostands.
@@ -48,4 +64,13 @@ permissions:
     default: true
   zbencoins.jobs.admin:
     description: Verwaltungsrechte für Jobs.
+    default: op
+  zbencoins.admin.serveroffers:
+    description: Verwaltungsrechte für Server-Angebote.
+    default: op
+  zbencoins.serveroffers.use:
+    description: Erlaube den Zugriff auf Server-Angebote.
+    default: true
+  zbencoins.serveroffers.bypasslimits:
+    description: Umgeht Mengenbegrenzungen für Server-Angebote.
     default: op
