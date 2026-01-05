@@ -3,6 +3,7 @@ version: ${version}
 main: com.zbennoz.zbenadmintool.ZBenAdmintool
 author: zbennoz
 api-version: '1.21'
+softdepend: [ZBenBackpack]
 commands:
   admin:
     description: Admin Menü
@@ -21,6 +22,14 @@ commands:
     description: Offline Inventar öffnen
   offec:
     description: Offline Enderchest öffnen
+  ban:
+    description: Spieler bannen
+  kick:
+    description: Spieler kicken
+  mute:
+    description: Spieler stummschalten
+  warn:
+    description: Spieler verwarnen
 permissions:
   zbenadmintool.admin:
     default: op

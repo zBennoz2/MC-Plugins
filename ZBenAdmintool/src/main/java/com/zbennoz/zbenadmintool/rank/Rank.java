@@ -1,5 +1,6 @@
 package com.zbennoz.zbenadmintool.rank;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,15 +11,18 @@ public class Rank {
     private final int priority;
     private final String prefix;
     private final String suffix;
-    private final Set<String> permissions = new HashSet<>();
+    private final Set<String> bukkitPermissions = new HashSet<>();
+    private final Set<RankPermission> rolePermissions = EnumSet.noneOf(RankPermission.class);
+    private final int backpackSlots;
 
-    public Rank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix) {
+    public Rank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots) {
         this.name = name;
         this.colorText = colorText;
         this.legacyColor = legacyColor;
         this.priority = priority;
         this.prefix = prefix;
         this.suffix = suffix;
+        this.backpackSlots = backpackSlots;
     }
 
     public String getName() {
@@ -45,7 +49,15 @@ public class Rank {
         return suffix;
     }
 
-    public Set<String> getPermissions() {
-        return permissions;
+    public Set<String> getBukkitPermissions() {
+        return bukkitPermissions;
+    }
+
+    public Set<RankPermission> getRolePermissions() {
+        return rolePermissions;
+    }
+
+    public int getBackpackSlots() {
+        return backpackSlots;
     }
 }

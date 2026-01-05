@@ -3,6 +3,7 @@ package com.zbennoz.zbenadmintool.command;
 import com.zbennoz.zbenadmintool.ZBenAdmintool;
 import com.zbennoz.zbenadmintool.gui.AdminMenuListener;
 import com.zbennoz.zbenadmintool.permission.PermissionResolver;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -23,7 +24,7 @@ public class AdminCommand implements CommandExecutor {
             return true;
         }
         PermissionResolver resolver = plugin.getPermissionResolver();
-        if (!resolver.has(player, "zbenadmintool.admin")) {
+        if (!resolver.has(player, RankPermission.ADMIN_MENU)) {
             player.sendMessage(plugin.getMessages().raw("no_permission"));
             return true;
         }

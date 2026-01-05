@@ -1,6 +1,7 @@
 package com.zbennoz.zbenadmintool.command;
 
 import com.zbennoz.zbenadmintool.ZBenAdmintool;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -22,7 +23,7 @@ public class OfflineInventoryCommand implements CommandExecutor {
             sender.sendMessage("Nur Spieler können dies nutzen.");
             return true;
         }
-        if (!plugin.getPermissionResolver().has(player, "zbenadmintool.offinv")) {
+        if (!plugin.getPermissionResolver().has(player, RankPermission.OFFLINE_INVENTORY)) {
             sender.sendMessage(plugin.getMessages().raw("no_permission"));
             return true;
         }

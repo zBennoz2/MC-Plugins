@@ -2,12 +2,16 @@ package com.zbennoz.zbenadmintool;
 
 import com.zbennoz.zbenadmintool.command.AdminCommand;
 import com.zbennoz.zbenadmintool.command.AdminModeCommand;
+import com.zbennoz.zbenadmintool.command.BanCommand;
+import com.zbennoz.zbenadmintool.command.InspectCommand;
+import com.zbennoz.zbenadmintool.command.KickCommand;
 import com.zbennoz.zbenadmintool.command.LogsCommand;
+import com.zbennoz.zbenadmintool.command.MuteCommand;
 import com.zbennoz.zbenadmintool.command.OfflineEnderCommand;
 import com.zbennoz.zbenadmintool.command.OfflineInventoryCommand;
 import com.zbennoz.zbenadmintool.command.RankCommand;
 import com.zbennoz.zbenadmintool.command.VanishCommand;
-import com.zbennoz.zbenadmintool.command.InspectCommand;
+import com.zbennoz.zbenadmintool.command.WarnCommand;
 import com.zbennoz.zbenadmintool.gui.AdminMenuListener;
 import com.zbennoz.zbenadmintool.gui.ChatInputListener;
 import com.zbennoz.zbenadmintool.logging.LogManager;
@@ -21,6 +25,8 @@ import com.zbennoz.zbenadmintool.rank.RankPermissionBridge;
 import com.zbennoz.zbenadmintool.rank.RankPermissionListener;
 import com.zbennoz.zbenadmintool.storage.Database;
 import com.zbennoz.zbenadmintool.text.MessageService;
+import com.zbennoz.zbenadmintool.util.BackpackIntegration;
+import com.zbennoz.zbenadmintool.util.ModerationService;
 import com.zbennoz.zbenadmintool.util.OfflineInventoryService;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
@@ -39,6 +45,8 @@ public class ZBenAdmintool extends JavaPlugin {
     private OfflineInventoryService offlineInventoryService;
     private InspectorListener inspectorListener;
     private ChatInputListener chatInputListener;
+    private BackpackIntegration backpackIntegration;
+    private ModerationService moderationService;
 
     @Override
     public void onEnable() {
@@ -57,6 +65,8 @@ public class ZBenAdmintool extends JavaPlugin {
         this.offlineInventoryService = new OfflineInventoryService(this, messages);
         this.inspectorListener = new InspectorListener(this, logManager);
         this.chatInputListener = new ChatInputListener(this);
+        this.backpackIntegration = new BackpackIntegration(this);
+        this.moderationService = new ModerationService(this);
 
         database.initSchema();
         rankManager.init();
@@ -69,6 +79,9 @@ public class ZBenAdmintool extends JavaPlugin {
             vanishManager.refreshVisibility(player);
             rankManager.refreshPlayerTeam(player);
             rankPermissionBridge.applyPermissions(player);
+            if (rankManager.getPlayerRank(player) != null) {
+                backpackIntegration.applyBackpackSize(player.getUniqueId(), rankManager.getPlayerRank(player).getBackpackSlots());
+            }
         });
     }
 
@@ -84,6 +97,10 @@ public class ZBenAdmintool extends JavaPlugin {
         getCommand("logs").setExecutor(new LogsCommand(this));
         getCommand("offinv").setExecutor(new OfflineInventoryCommand(this));
         getCommand("offec").setExecutor(new OfflineEnderCommand(this));
+        getCommand("ban").setExecutor(new BanCommand(this));
+        getCommand("kick").setExecutor(new KickCommand(this));
+        getCommand("mute").setExecutor(new MuteCommand(this));
+        getCommand("warn").setExecutor(new WarnCommand(this));
     }
 
     private void registerListeners() {
@@ -92,6 +109,8 @@ public class ZBenAdmintool extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(inspectorListener, this);
         Bukkit.getPluginManager().registerEvents(chatInputListener, this);
         Bukkit.getPluginManager().registerEvents(new RankPermissionListener(this), this);
+        Bukkit.getPluginManager().registerEvents(offlineInventoryService, this);
+        Bukkit.getPluginManager().registerEvents(moderationService, this);
     }
 
     @Override
@@ -144,5 +163,13 @@ public class ZBenAdmintool extends JavaPlugin {
 
     public ChatInputListener getChatInputListener() {
         return chatInputListener;
+    }
+
+    public BackpackIntegration getBackpackIntegration() {
+        return backpackIntegration;
+    }
+
+    public ModerationService getModerationService() {
+        return moderationService;
     }
 }

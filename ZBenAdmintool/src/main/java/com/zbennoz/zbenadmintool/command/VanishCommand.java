@@ -1,6 +1,7 @@
 package com.zbennoz.zbenadmintool.command;
 
 import com.zbennoz.zbenadmintool.ZBenAdmintool;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,7 +21,7 @@ public class VanishCommand implements CommandExecutor {
             sender.sendMessage("Nur Spieler können das nutzen.");
             return true;
         }
-        if (!plugin.getPermissionResolver().has(player, "zbenadmintool.vanish")) {
+        if (!plugin.getPermissionResolver().has(player, RankPermission.VANISH)) {
             player.sendMessage(plugin.getMessages().raw("no_permission"));
             return true;
         }

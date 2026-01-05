@@ -42,7 +42,12 @@ public class Database {
     public void initSchema() {
         try (Connection connection = openConnection();
              Statement st = connection.createStatement()) {
-            st.executeUpdate("CREATE TABLE IF NOT EXISTS ranks(name TEXT PRIMARY KEY, color TEXT, priority INT, prefix TEXT, suffix TEXT);");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS ranks(name TEXT PRIMARY KEY, color TEXT, priority INT, prefix TEXT, suffix TEXT, backpack_slots INT DEFAULT 27);");
+            try {
+                st.executeUpdate("ALTER TABLE ranks ADD COLUMN backpack_slots INT DEFAULT 27;");
+            } catch (SQLException ignored) {
+                // Column exists
+            }
             st.executeUpdate("CREATE TABLE IF NOT EXISTS player_ranks(uuid TEXT PRIMARY KEY, rank_name TEXT);");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS rank_permissions(rank_name TEXT, permission TEXT, PRIMARY KEY(rank_name, permission));");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS container_logs( id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT, name TEXT, world TEXT, x INT, y INT, z INT, container_type TEXT, action TEXT, material TEXT, amount INT, ts INTEGER);");

@@ -33,7 +33,7 @@ public class RankPermissionBridge {
             return;
         }
 
-        rank.getPermissions().forEach(permission -> grantPermission(attachment, permission));
+        rank.getBukkitPermissions().forEach(permission -> grantPermission(attachment, permission));
         player.recalculatePermissions();
     }
 
