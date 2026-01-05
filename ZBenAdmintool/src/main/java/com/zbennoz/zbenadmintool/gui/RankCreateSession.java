@@ -5,13 +5,15 @@ public class RankCreateSession {
     public enum Step {
         NAME,
         COLOR,
-        PRIORITY
+        PRIORITY,
+        BACKPACK
     }
 
     private Step step = Step.NAME;
     private String name;
     private String color;
     private Integer priority;
+    private Integer backpackSlots;
 
     public Step getStep() {
         return step;
@@ -43,5 +45,13 @@ public class RankCreateSession {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public Integer getBackpackSlots() {
+        return backpackSlots;
+    }
+
+    public void setBackpackSlots(Integer backpackSlots) {
+        this.backpackSlots = backpackSlots;
     }
 }

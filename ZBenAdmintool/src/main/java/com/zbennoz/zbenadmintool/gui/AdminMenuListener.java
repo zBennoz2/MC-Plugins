@@ -2,6 +2,7 @@ package com.zbennoz.zbenadmintool.gui;
 
 import com.zbennoz.zbenadmintool.ZBenAdmintool;
 import com.zbennoz.zbenadmintool.permission.PermissionResolver;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -68,26 +69,34 @@ public class AdminMenuListener implements Listener {
         PermissionResolver resolver = plugin.getPermissionResolver();
         switch (action) {
             case "adminmode" -> {
-                if (resolver.has(player, "zbenadmintool.adminmode")) {
+                if (resolver.has(player, RankPermission.ADMIN_MODE)) {
                     plugin.getAdminModeManager().toggle(player);
                 }
             }
             case "vanish" -> {
-                if (resolver.has(player, "zbenadmintool.vanish")) {
+                if (resolver.has(player, RankPermission.VANISH)) {
                     plugin.getVanishManager().toggle(player);
                 }
             }
             case "gm1" -> {
-                player.setGameMode(org.bukkit.GameMode.CREATIVE);
+                if (resolver.has(player, RankPermission.ADMIN_MODE)) {
+                    player.setGameMode(org.bukkit.GameMode.CREATIVE);
+                } else {
+                    player.sendMessage(plugin.getMessages().raw("no_permission"));
+                }
             }
             case "gm0" -> {
-                player.setGameMode(org.bukkit.GameMode.SURVIVAL);
+                if (resolver.has(player, RankPermission.ADMIN_MODE)) {
+                    player.setGameMode(org.bukkit.GameMode.SURVIVAL);
+                } else {
+                    player.sendMessage(plugin.getMessages().raw("no_permission"));
+                }
             }
             case "offinv" -> player.performCommand("offinv " + player.getName());
             case "offec" -> player.performCommand("offec " + player.getName());
             case "rank" -> player.performCommand("rank list");
             case "rank_create" -> {
-                if (resolver.has(player, "zbenadmintool.rank.manage")) {
+                if (resolver.has(player, RankPermission.RANK_MANAGE)) {
                     plugin.getChatInputListener().startSession(player);
                 } else {
                     player.sendMessage(plugin.getMessages().raw("no_permission"));

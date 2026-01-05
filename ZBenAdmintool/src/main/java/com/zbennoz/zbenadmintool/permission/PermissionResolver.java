@@ -1,6 +1,7 @@
 package com.zbennoz.zbenadmintool.permission;
 
 import com.zbennoz.zbenadmintool.rank.RankManager;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.entity.Player;
 
 public class PermissionResolver {
@@ -13,5 +14,9 @@ public class PermissionResolver {
 
     public boolean has(Player player, String permission) {
         return player.hasPermission(permission) || rankManager.hasRankPermission(player, permission);
+    }
+
+    public boolean has(Player player, RankPermission permission) {
+        return rankManager.hasRankPermission(player, permission);
     }
 }

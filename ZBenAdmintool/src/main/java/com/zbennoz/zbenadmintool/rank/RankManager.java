@@ -13,13 +13,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.EnumSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class RankManager {
@@ -42,50 +45,94 @@ public class RankManager {
     public void init() {
         loadRanks();
         ensureDefaults();
+        ensureRolePermissionMappings();
         loadPlayerRanks();
         refreshAllTeams();
     }
 
     private void ensureDefaults() {
         if (ranks.isEmpty()) {
-            createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, "", "");
-            createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, "", "");
-            createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "");
-            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "");
-            createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "");
+            createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, "", "", 54);
+            createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, "", "", 45);
+            createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "", 36);
+            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "", 30);
+            createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "", 27);
             applyDefaultPermissions();
         }
     }
 
     private void applyDefaultPermissions() {
-        addDefaultPermissions("Owner", List.of(
-                "zbenadmintool.*",
-                "minecraft.command.kick",
-                "minecraft.command.ban",
-                "minecraft.command.unban"
-        ));
-        addDefaultPermissions("Admin", List.of(
-                "zbenadmintool.*",
-                "minecraft.command.kick",
-                "minecraft.command.ban",
-                "minecraft.command.unban"
-        ));
-        addDefaultPermissions("Moderator", List.of(
-                "zbenadmintool.inspect",
-                "zbenadmintool.vanish",
-                "minecraft.command.kick",
-                "minecraft.command.ban"
-        ));
-        addDefaultPermissions("Supporter", List.of(
-                "zbenadmintool.inspect",
-                "minecraft.command.kick"
-        ));
+        addDefaultPermissions("Owner",
+                List.of(
+                        "zbenadmintool.*",
+                        "minecraft.command.kick",
+                        "minecraft.command.ban",
+                        "minecraft.command.unban"
+                ),
+                EnumSet.of(RankPermission.ALL));
+        addDefaultPermissions("Admin",
+                List.of(
+                        "zbenadmintool.*",
+                        "minecraft.command.kick",
+                        "minecraft.command.ban",
+                        "minecraft.command.unban"
+                ),
+                EnumSet.of(
+                        RankPermission.BAN,
+                        RankPermission.KICK,
+                        RankPermission.MUTE,
+                        RankPermission.WARN,
+                        RankPermission.INSPECT,
+                        RankPermission.RANK_MANAGE,
+                        RankPermission.ADMIN_MENU,
+                        RankPermission.ADMIN_MODE,
+                        RankPermission.VANISH,
+                        RankPermission.LOGS,
+                        RankPermission.OFFLINE_INVENTORY,
+                        RankPermission.OFFLINE_ENDERCHEST));
+        addDefaultPermissions("Moderator",
+                List.of(
+                        "zbenadmintool.inspect",
+                        "zbenadmintool.vanish",
+                        "minecraft.command.kick",
+                        "minecraft.command.ban"
+                ),
+                EnumSet.of(
+                        RankPermission.KICK,
+                        RankPermission.MUTE,
+                        RankPermission.WARN,
+                        RankPermission.INSPECT));
+        addDefaultPermissions("Supporter",
+                List.of(
+                        "zbenadmintool.inspect",
+                        "minecraft.command.kick"
+                ),
+                EnumSet.of(RankPermission.INSPECT));
     }
 
-    private void addDefaultPermissions(String rankName, List<String> permissions) {
-        for (String permission : permissions) {
-            addPermission(rankName, permission);
-        }
+    private void ensureRolePermissionMappings() {
+        ranks.values().forEach(rank -> {
+            if (!rank.getRolePermissions().isEmpty()) {
+                return;
+            }
+            String name = rank.getName().toLowerCase(Locale.ROOT);
+            if (name.equals("owner")) {
+                addPermission(rank.getName(), RankPermission.ALL.name());
+            } else if (name.equals("admin")) {
+                EnumSet.of(RankPermission.BAN, RankPermission.KICK, RankPermission.MUTE, RankPermission.WARN, RankPermission.INSPECT,
+                        RankPermission.RANK_MANAGE, RankPermission.ADMIN_MENU, RankPermission.ADMIN_MODE, RankPermission.VANISH,
+                        RankPermission.LOGS, RankPermission.OFFLINE_INVENTORY, RankPermission.OFFLINE_ENDERCHEST)
+                        .forEach(perm -> addPermission(rank.getName(), perm.name()));
+            } else if (name.equals("moderator")) {
+                EnumSet.of(RankPermission.KICK, RankPermission.MUTE, RankPermission.WARN, RankPermission.INSPECT)
+                        .forEach(perm -> addPermission(rank.getName(), perm.name()));
+            }
+        });
+    }
+
+    private void addDefaultPermissions(String rankName, List<String> permissions, Set<RankPermission> rolePermissions) {
+        permissions.forEach(permission -> addPermission(rankName, permission));
+        rolePermissions.forEach(permission -> addPermission(rankName, permission.name()));
     }
 
     private void loadRanks() {
@@ -100,7 +147,11 @@ public class RankManager {
                 int priority = rs.getInt("priority");
                 String prefix = rs.getString("prefix");
                 String suffix = rs.getString("suffix");
-                Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix);
+                int backpackSlots = rs.getInt("backpack_slots");
+                if (backpackSlots <= 0) {
+                    backpackSlots = 27;
+                }
+                Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots);
                 loadPermissions(connection, rank);
                 ranks.put(name.toLowerCase(Locale.ROOT), rank);
             }
@@ -114,7 +165,13 @@ public class RankManager {
             ps.setString(1, rank.getName());
             ResultSet perm = ps.executeQuery();
             while (perm.next()) {
-                rank.getPermissions().add(perm.getString("permission"));
+                String value = perm.getString("permission");
+                RankPermission rolePermission = RankPermission.fromString(value);
+                if (rolePermission != null) {
+                    rank.getRolePermissions().add(rolePermission);
+                } else {
+                    rank.getBukkitPermissions().add(value);
+                }
             }
         }
     }
@@ -132,19 +189,20 @@ public class RankManager {
         }
     }
 
-    public boolean createRank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix) {
+    public boolean createRank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots) {
         if (ranks.containsKey(name.toLowerCase(Locale.ROOT))) {
             return false;
         }
         try (Connection connection = database.openConnection();
-             PreparedStatement st = connection.prepareStatement("INSERT INTO ranks(name, color, priority, prefix, suffix) VALUES(?,?,?,?,?)")) {
+             PreparedStatement st = connection.prepareStatement("INSERT INTO ranks(name, color, priority, prefix, suffix, backpack_slots) VALUES(?,?,?,?,?,?)")) {
             st.setString(1, name);
             st.setString(2, colorText);
             st.setInt(3, priority);
             st.setString(4, prefix);
             st.setString(5, suffix);
+            st.setInt(6, backpackSlots);
             st.executeUpdate();
-            Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix);
+            Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots);
             ranks.put(name.toLowerCase(Locale.ROOT), rank);
             refreshAllTeams();
             return true;
@@ -221,6 +279,10 @@ public class RankManager {
                     permissionBridge.applyPermissions(player);
                 }
             }
+            Rank rank = getRank(rankName);
+            if (rank != null) {
+                plugin.getBackpackIntegration().applyBackpackSize(uuid, rank.getBackpackSlots());
+            }
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Spieler-Rang nicht speichern: " + e.getMessage());
         }
@@ -237,6 +299,10 @@ public class RankManager {
                 refreshPlayerTeam(player);
                 if (permissionBridge != null) {
                     permissionBridge.applyPermissions(player);
+                }
+                Rank fallback = getPlayerRank(player);
+                if (fallback != null) {
+                    plugin.getBackpackIntegration().applyBackpackSize(uuid, fallback.getBackpackSlots());
                 }
             }
         } catch (SQLException e) {
@@ -261,7 +327,12 @@ public class RankManager {
             st.executeUpdate();
             Rank rank = getRank(rankName);
             if (rank != null) {
-                rank.getPermissions().add(permission);
+                RankPermission internal = RankPermission.fromString(permission);
+                if (internal != null) {
+                    rank.getRolePermissions().add(internal);
+                } else {
+                    rank.getBukkitPermissions().add(permission);
+                }
             }
             reapplyPermissions(rankName);
             return true;
@@ -279,7 +350,11 @@ public class RankManager {
             st.executeUpdate();
             Rank rank = getRank(rankName);
             if (rank != null) {
-                rank.getPermissions().remove(permission);
+                RankPermission internal = RankPermission.fromString(permission);
+                if (internal != null) {
+                    rank.getRolePermissions().remove(internal);
+                }
+                rank.getBukkitPermissions().remove(permission);
             }
             reapplyPermissions(rankName);
             return true;
@@ -289,9 +364,57 @@ public class RankManager {
         }
     }
 
-    public boolean hasRankPermission(Player player, String permission) {
+    public boolean updateBackpackSlots(String rankName, int slots) {
+        Rank rank = getRank(rankName);
+        if (rank == null) {
+            return false;
+        }
+        try (Connection connection = database.openConnection();
+             PreparedStatement st = connection.prepareStatement("UPDATE ranks SET backpack_slots = ? WHERE name = ?")) {
+            st.setInt(1, slots);
+            st.setString(2, rankName);
+            st.executeUpdate();
+            Rank updated = new Rank(rank.getName(), rank.getColorText(), rank.getLegacyColor(), rank.getPriority(), rank.getPrefix(), rank.getSuffix(), slots);
+            updated.getBukkitPermissions().addAll(rank.getBukkitPermissions());
+            updated.getRolePermissions().addAll(rank.getRolePermissions());
+            ranks.put(rankName.toLowerCase(Locale.ROOT), updated);
+            refreshAllTeams();
+            playerRanks.entrySet().stream()
+                    .filter(entry -> entry.getValue().equalsIgnoreCase(rankName))
+                    .map(Map.Entry::getKey)
+                    .forEach(uuid -> plugin.getBackpackIntegration().applyBackpackSize(uuid, slots));
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Konnte Backpack-Slots nicht aktualisieren: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean hasRankPermission(Player player, RankPermission permission) {
         Rank rank = getPlayerRank(player);
-        return rank != null && rank.getPermissions().stream().anyMatch(p -> matchesPermission(p, permission));
+        if (rank == null) {
+            return false;
+        }
+        if (rank.getRolePermissions().contains(RankPermission.ALL)) {
+            return true;
+        }
+        if (rank.getRolePermissions().contains(permission)) {
+            return true;
+        }
+        return hasBukkitWildcard(rank);
+    }
+
+    public boolean hasRankPermission(Player player, String permission) {
+        RankPermission internal = RankPermission.fromString(permission);
+        if (internal != null) {
+            return hasRankPermission(player, internal);
+        }
+        Rank rank = getPlayerRank(player);
+        return rank != null && rank.getBukkitPermissions().stream().anyMatch(p -> matchesPermission(p, permission));
+    }
+
+    private boolean hasBukkitWildcard(Rank rank) {
+        return rank.getBukkitPermissions().stream().anyMatch(perm -> matchesPermission(perm, "zbenadmintool.*"));
     }
 
     private boolean matchesPermission(String rankPermission, String requested) {

@@ -66,6 +66,7 @@ public class ChatInputListener implements Listener {
             case NAME -> handleNameStep(player, session, message);
             case COLOR -> handleColorStep(player, session, message);
             case PRIORITY -> handlePriorityStep(player, session, message);
+            case BACKPACK -> handleBackpackStep(player, session, message);
         }
     }
 
@@ -111,6 +112,22 @@ public class ChatInputListener implements Listener {
             }
         }
         session.setPriority(priority);
+        session.setStep(RankCreateSession.Step.BACKPACK);
+        player.sendMessage(plugin.getMessages().raw("rank.create.prompt_backpack"));
+    }
+
+    private void handleBackpackStep(Player player, RankCreateSession session, String message) {
+        int slots = 27;
+        if (!message.equalsIgnoreCase("skip")) {
+            try {
+                slots = Integer.parseInt(message);
+            } catch (NumberFormatException ex) {
+                player.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
+                player.sendMessage(plugin.getMessages().raw("rank.create.prompt_backpack"));
+                return;
+            }
+        }
+        session.setBackpackSlots(slots);
         finishCreation(player, session);
     }
 
@@ -122,7 +139,8 @@ public class ChatInputListener implements Listener {
                 legacyColor,
                 session.getPriority(),
                 "",
-                "");
+                "",
+                session.getBackpackSlots() == null ? 27 : session.getBackpackSlots());
         if (success) {
             player.sendMessage(plugin.getMessages().raw("rank.created").replace("%name%", session.getName()));
             sessions.remove(player.getUniqueId());

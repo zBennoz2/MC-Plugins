@@ -2,6 +2,7 @@ package com.zbennoz.zbenadmintool.command;
 
 import com.zbennoz.zbenadmintool.ZBenAdmintool;
 import com.zbennoz.zbenadmintool.rank.Rank;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -15,13 +16,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RankCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBCOMMANDS = List.of("help", "list", "info", "create", "delete", "set", "remove", "perm");
+    private static final List<String> SUBCOMMANDS = List.of("help", "list", "info", "create", "delete", "set", "remove", "perm", "backpack");
     private final ZBenAdmintool plugin;
 
     public RankCommand(ZBenAdmintool plugin) {
@@ -50,6 +53,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             case "set" -> handleSet(sender, args);
             case "remove" -> handleRemove(sender, args);
             case "perm" -> handlePerm(sender, args);
+            case "backpack" -> handleBackpack(sender, args);
             default -> sender.sendMessage(plugin.getMessages().raw("rank.unknown_command"));
         }
         return true;
@@ -59,7 +63,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
         if (!(sender instanceof Player player)) {
             return true;
         }
-        return plugin.getPermissionResolver().has(player, "zbenadmintool.rank.manage");
+        return plugin.getPermissionResolver().has(player, RankPermission.RANK_MANAGE);
     }
 
     private void sendHelp(CommandSender sender) {
@@ -88,11 +92,14 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                 .replace("%name%", rank.getName())
                 .replace("%color%", rank.getColorText())
                 .replace("%priority%", String.valueOf(rank.getPriority())));
-        if (rank.getPermissions().isEmpty()) {
+        sender.sendMessage(plugin.getMessages().raw("rank.info_backpack")
+                .replace("%slots%", String.valueOf(rank.getBackpackSlots())));
+        Set<String> permissions = collectPermissions(rank);
+        if (permissions.isEmpty()) {
             sender.sendMessage(plugin.getMessages().raw("rank.permissions_empty"));
         } else {
             sender.sendMessage(plugin.getMessages().raw("rank.perm_list_header").replace("%rank%", rank.getName()));
-            rank.getPermissions().stream().sorted().forEach(perm ->
+            permissions.stream().sorted().forEach(perm ->
                     sender.sendMessage(plugin.getMessages().raw("rank.perm_list_entry").replace("%perm%", perm)));
         }
     }
@@ -123,8 +130,17 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(plugin.getMessages().raw("rank.invalid_priority"));
             return;
         }
+        int backpackSlots = 27;
+        if (args.length >= 5) {
+            try {
+                backpackSlots = Integer.parseInt(args[4]);
+            } catch (NumberFormatException e) {
+                sender.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
+                return;
+            }
+        }
         String legacyColor = plugin.getRankManager().parseLegacyColor(colorInput);
-        boolean success = plugin.getRankManager().createRank(name, colorInput, legacyColor, priority, "", "");
+        boolean success = plugin.getRankManager().createRank(name, colorInput, legacyColor, priority, "", "", backpackSlots);
         sender.sendMessage(plugin.getMessages().raw(success ? "rank.created" : "rank.create_failed").replace("%name%", name));
     }
 
@@ -206,16 +222,36 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                         .replace("%rank%", rankName));
             }
             case "list" -> {
-                if (rank.getPermissions().isEmpty()) {
+                Set<String> permissions = collectPermissions(rank);
+                if (permissions.isEmpty()) {
                     sender.sendMessage(plugin.getMessages().raw("rank.permissions_empty"));
                 } else {
                     sender.sendMessage(plugin.getMessages().raw("rank.perm_list_header").replace("%rank%", rank.getName()));
-                    rank.getPermissions().stream().sorted().forEach(perm ->
+                    permissions.stream().sorted().forEach(perm ->
                             sender.sendMessage(plugin.getMessages().raw("rank.perm_list_entry").replace("%perm%", perm)));
                 }
             }
             default -> sender.sendMessage(plugin.getMessages().raw("rank.unknown_command"));
         }
+    }
+
+    private void handleBackpack(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(plugin.getMessages().raw("rank.backpack_usage"));
+            return;
+        }
+        String rankName = args[1];
+        int slots;
+        try {
+            slots = Integer.parseInt(args[2]);
+        } catch (NumberFormatException e) {
+            sender.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
+            return;
+        }
+        boolean success = plugin.getRankManager().updateBackpackSlots(rankName, slots);
+        sender.sendMessage(plugin.getMessages().raw(success ? "rank.backpack_updated" : "rank.backpack_failed")
+                .replace("%rank%", rankName)
+                .replace("%slots%", String.valueOf(slots)));
     }
 
     @Override
@@ -228,7 +264,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "set" -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
-                case "delete", "info" -> plugin.getRankManager().getRankNames();
+                case "delete", "info", "backpack" -> plugin.getRankManager().getRankNames();
                 case "perm" -> List.of("add", "remove", "list");
                 case "create" -> Collections.emptyList();
                 case "remove" -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
@@ -240,6 +276,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                 case "set" -> plugin.getRankManager().getRankNames();
                 case "perm" -> plugin.getRankManager().getRankNames();
                 case "create" -> colorSuggestions(args[2]);
+                case "backpack" -> List.of("27", "36", "45", "54");
                 default -> Collections.emptyList();
             };
         }
@@ -255,5 +292,11 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             return suggestions;
         }
         return suggestions.stream().filter(c -> c.toLowerCase(Locale.ROOT).startsWith(current.toLowerCase(Locale.ROOT))).toList();
+    }
+
+    private Set<String> collectPermissions(Rank rank) {
+        Set<String> permissions = new HashSet<>(rank.getBukkitPermissions());
+        rank.getRolePermissions().forEach(perm -> permissions.add(perm.name()));
+        return permissions;
     }
 }

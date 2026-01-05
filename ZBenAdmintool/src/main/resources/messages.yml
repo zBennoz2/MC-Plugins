@@ -3,7 +3,9 @@ adminmode.enabled: "§aAdmin-Mode aktiviert."
 adminmode.disabled: "§cAdmin-Mode deaktiviert."
 vanish.enabled: "§aVanish aktiviert."
 vanish.disabled: "§cVanish deaktiviert."
-offline.read_only: "§eOffline-Daten werden nur angezeigt (Read-Only)."
+offline.read_only: "§eOffline-Daten geladen. Änderungen gelten beim nächsten Login."
+offline.saved: "§aÄnderungen wurden gespeichert und werden bei Login übernommen."
+offline.locked: "§cDer Spieler ist beigetreten. Offline-Bearbeitung abgebrochen."
 inspect.enabled: "§aInspektor-Modus aktiviert. Rechtsklick auf einen Block zeigt Logs."
 inspect.disabled: "§cInspektor-Modus deaktiviert."
 inspect.no_logs: "§7Keine Einträge gefunden."
@@ -16,15 +18,16 @@ rank.help: |-
   §6/rank help§7 - Zeigt diese Hilfe
   §6/rank list§7 - Listet alle Ränge
   §6/rank info <rang>§7 - Zeigt Details zu einem Rang
-  §6/rank create <rang> <farbe> <prio>§7 - Erstellt einen Rang
+  §6/rank create <rang> <farbe> <prio> [slots]§7 - Erstellt einen Rang
   §6/rank delete <rang>§7 - Löscht einen Rang
   §6/rank set <spieler> <rang>§7 - Setzt den Rang eines Spielers
   §6/rank remove <spieler>§7 - Entfernt den Rang eines Spielers
   §6/rank perm add/remove <rang> <permission>§7 - Bearbeitet Rang-Berechtigungen
   §6/rank perm list <rang>§7 - Listet Berechtigungen eines Ranges
+  §6/rank backpack <rang> <slots>§7 - Setzt Backpack-Größe für einen Rang
 rank.list: "§7Verfügbare Ränge: %ranks%"
 rank.info_usage: "§cNutzung: /rank info <rang>"
-rank.create_usage: "§cNutzung: /rank create <rang> <farbe> <prio>"
+rank.create_usage: "§cNutzung: /rank create <rang> <farbe> <prio> [slots]"
 rank.delete_usage: "§cNutzung: /rank delete <rang>"
 rank.set_usage: "§cNutzung: /rank set <spieler> <rang>"
 rank.remove_usage: "§cNutzung: /rank remove <spieler>"
@@ -52,4 +55,10 @@ rank.permission_failed: "§cDie Berechtigung konnte nicht geändert werden."
 rank.create.prompt_name: "§7Bitte gib den Rangnamen ein (oder 'abbrechen')."
 rank.create.prompt_color: "§7Bitte gib die Farbe ein (z.B. red oder #00ff00) oder 'skip'."
 rank.create.prompt_priority: "§7Bitte gib die Priorität ein (Zahl) oder 'skip'."
+rank.create.prompt_backpack: "§7Bitte gib die Backpack-Slots ein (Zahl) oder 'skip' für 27."
 rank.create.cancelled: "§cRang-Erstellung abgebrochen."
+rank.info_backpack: "§7Backpack-Slots: %slots%"
+rank.invalid_backpack: "§cBackpack-Slots müssen eine Zahl sein."
+rank.backpack_usage: "§cNutzung: /rank backpack <rang> <slots>"
+rank.backpack_updated: "§aBackpack-Größe für %rank% auf %slots% gesetzt."
+rank.backpack_failed: "§cBackpack-Größe konnte nicht gesetzt werden."

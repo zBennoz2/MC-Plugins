@@ -1,6 +1,7 @@
 package com.zbennoz.zbenadmintool.command;
 
 import com.zbennoz.zbenadmintool.ZBenAdmintool;
+import com.zbennoz.zbenadmintool.rank.RankPermission;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -23,7 +24,7 @@ public class LogsCommand implements CommandExecutor {
             sender.sendMessage("Nur Spieler können das nutzen.");
             return true;
         }
-        if (!plugin.getPermissionResolver().has(player, "zbenadmintool.logs")) {
+        if (!plugin.getPermissionResolver().has(player, RankPermission.LOGS)) {
             player.sendMessage(plugin.getMessages().raw("no_permission"));
             return true;
         }
