@@ -48,8 +48,12 @@ public class ServerOfferCreateGui implements ManagedGui {
                 .lore(List.of(
                         "&7Typ: &e" + (type == ServerOfferType.SELL_TO_PLAYER ? "Server-Verkauf" : "Server-Ankauf"),
                         "&7Preis: &6" + draft.getPricePerItem(),
-                        "&7Min: &e" + draft.getMinAmount().orElse(0),
-                        "&7Max: &e" + draft.getMaxAmount().orElse(0),
+                        "&7Min: &e" + draft.getMinAmount().orElse(1),
+                        "&7Max: &e" + (draft.getMaxAmount().orElse(-1) == -1 ? "∞" : draft.getMaxAmount().orElse(0)),
+                        draft.isPeriodLimitEnabled()
+                                ? "&7Limit/7T: &e" + draft.getPeriodUsedAmount() + " / " +
+                                draft.getPeriodMaxAmount().orElse(0)
+                                : "&7Limit: &7Keins",
                         draft.isEnabled() ? "&aAktiv" : "&cDeaktiviert"
                 ))
                 .build();
@@ -59,6 +63,16 @@ public class ServerOfferCreateGui implements ManagedGui {
         ItemStack toggle = new GuiItemBuilder(draft.isEnabled() ? Material.LIME_DYE : Material.GRAY_DYE)
                 .name(draft.isEnabled() ? "&aAktiviert" : "&cDeaktiviert")
                 .build();
+        ItemStack periodToggle = new GuiItemBuilder(draft.isPeriodLimitEnabled() ? Material.CLOCK : Material.REDSTONE_TORCH)
+                .name("&eWöchentliches Limit")
+                .lore(List.of(
+                        draft.isPeriodLimitEnabled() ? "&aAktiv" : "&cDeaktiviert",
+                        "&7Max/7 Tage: &e" + (draft.getPeriodMaxAmount().orElse(-1) == -1 ? "∞" : draft.getPeriodMaxAmount().orElse(0))
+                ))
+                .build();
+        ItemStack periodMax = new GuiItemBuilder(Material.PAPER).name("&eMax pro 7 Tage setzen")
+                .lore(List.of("&7Aktuell: &e" + (draft.getPeriodMaxAmount().orElse(-1) == -1 ? "∞" : draft.getPeriodMaxAmount().orElse(0))))
+                .build();
         ItemStack confirm = new GuiItemBuilder(Material.EMERALD_BLOCK).name("&aErstellen").build();
         ItemStack cancel = new GuiItemBuilder(Material.BARRIER).name("&cAbbrechen").build();
 
@@ -66,6 +80,8 @@ public class ServerOfferCreateGui implements ManagedGui {
         inventory.setItem(12, setMin);
         inventory.setItem(14, setMax);
         inventory.setItem(16, toggle);
+        inventory.setItem(20, periodToggle);
+        inventory.setItem(24, periodMax);
         inventory.setItem(13, info);
         inventory.setItem(22, cancel);
         inventory.setItem(26, confirm);
@@ -90,6 +106,11 @@ public class ServerOfferCreateGui implements ManagedGui {
                 draft.setEnabled(!draft.isEnabled());
                 plugin.getGuiManager().openGui(clicker, new ServerOfferCreateGui(plugin, service, type, clicker));
             });
+            case 20 -> {
+                service.toggleDraftPeriodLimit(clicker);
+                plugin.getGuiManager().openGui(clicker, new ServerOfferCreateGui(plugin, service, type, clicker));
+            }
+            case 24 -> service.requestPeriodMaxInput(clicker, -1);
             case 26 -> {
                 service.publishDraft(clicker);
                 plugin.getGuiManager().openGui(clicker, new ServerOfferListGui(plugin, service, type, clicker));

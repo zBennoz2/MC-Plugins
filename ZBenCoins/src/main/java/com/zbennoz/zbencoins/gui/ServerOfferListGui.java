@@ -48,12 +48,19 @@ public class ServerOfferListGui implements ManagedGui {
         int slot = 0;
         for (ServerOffer offer : offers) {
             ItemStack display = offer.getItemStack();
-            display.setAmount(Math.min(display.getMaxStackSize(), offer.getMaxAmount().orElse(display.getAmount())));
+            int displayAmount = offer.getMaxAmount().map(max -> max == -1 ? offer.getItemStack().getAmount() : max)
+                    .orElse(offer.getItemStack().getAmount());
+            display.setAmount(Math.min(display.getMaxStackSize(), displayAmount));
             List<String> lore = new ArrayList<>();
             lore.add("&7Typ: &e" + (offer.getType() == ServerOfferType.SELL_TO_PLAYER ? "Server-Verkauf" : "Server-Ankauf"));
             lore.add("&7Preis: &6" + offer.getPricePerItem() + " " + plugin.getConfig().getString("currency-name", "Coins") + " pro Stück");
             offer.getMinAmount().ifPresent(min -> lore.add("&7Mindestmenge: &e" + min));
-            offer.getMaxAmount().ifPresent(max -> lore.add("&7Maximal: &e" + max));
+            offer.getMaxAmount().ifPresent(max -> lore.add("&7Maximal: &e" + (max == -1 ? "∞" : max)));
+            if (offer.isPeriodLimitEnabled() && offer.getPeriodMaxAmount().isPresent()) {
+                String limit = offer.getPeriodMaxAmount().get() == -1 ? "∞" : String.valueOf(offer.getPeriodMaxAmount().get());
+                lore.add("&7Limit/7 Tage: &e" + offer.getPeriodUsedAmount() + " / " + limit);
+                lore.add("&7Reset in: &e" + formatReset(offer));
+            }
             lore.add("&7Links: 1 | Shift-Links: 16 | Rechts: 64");
             if (admin) {
                 lore.add(offer.isEnabled() ? "&aAktiv" : "&cDeaktiviert");
@@ -144,9 +151,26 @@ public class ServerOfferListGui implements ManagedGui {
             case RIGHT, SHIFT_RIGHT -> max;
             default -> first;
         };
-        if (offer.getMaxAmount().isPresent() && !viewer.hasPermission("zbencoins.serveroffers.bypasslimits")) {
+        if (offer.getMinAmount().isPresent()) {
+            amount = Math.max(amount, offer.getMinAmount().get());
+        }
+        if (offer.getMaxAmount().isPresent() && offer.getMaxAmount().get() != -1 && !viewer.hasPermission("zbencoins.serveroffers.bypasslimits")) {
             amount = Math.min(amount, offer.getMaxAmount().get());
         }
         return Math.max(1, amount);
+    }
+
+    private String formatReset(ServerOffer offer) {
+        long now = System.currentTimeMillis();
+        long start = offer.getPeriodStartMillis().orElse(now);
+        long duration = offer.getPeriodTicks() * 50L;
+        long remaining = Math.max(0, duration - (now - start));
+        long minutes = (remaining / 1000) / 60;
+        long hours = minutes / 60;
+        minutes = minutes % 60;
+        if (hours > 0) {
+            return hours + "h " + minutes + "m";
+        }
+        return minutes + "m";
     }
 }

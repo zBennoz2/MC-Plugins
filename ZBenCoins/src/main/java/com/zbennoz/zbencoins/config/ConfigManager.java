@@ -49,4 +49,8 @@ public class ConfigManager {
     public String message(String key, Map<String, String> placeholders) {
         return Text.format(messages.getString(key, key), placeholders);
     }
+
+    public boolean isDebug() {
+        return plugin.getConfig().getBoolean("debug", false);
+    }
 }
