@@ -130,11 +130,15 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(plugin.getMessages().raw("rank.invalid_priority"));
             return;
         }
-        int backpackSlots = 27;
+        int backpackSlots = plugin.getRankManager().defaultBackpackSlotsFor(name);
         if (args.length >= 5) {
             try {
                 backpackSlots = Integer.parseInt(args[4]);
             } catch (NumberFormatException e) {
+                sender.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
+                return;
+            }
+            if (!plugin.getRankManager().isValidBackpackSize(backpackSlots)) {
                 sender.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
                 return;
             }
@@ -248,6 +252,10 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
             return;
         }
+        if (!plugin.getRankManager().isValidBackpackSize(slots)) {
+            sender.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
+            return;
+        }
         boolean success = plugin.getRankManager().updateBackpackSlots(rankName, slots);
         sender.sendMessage(plugin.getMessages().raw(success ? "rank.backpack_updated" : "rank.backpack_failed")
                 .replace("%rank%", rankName)
@@ -276,7 +284,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                 case "set" -> plugin.getRankManager().getRankNames();
                 case "perm" -> plugin.getRankManager().getRankNames();
                 case "create" -> colorSuggestions(args[2]);
-                case "backpack" -> List.of("27", "36", "45", "54");
+                case "backpack" -> List.of("9", "18", "27", "36", "45", "54");
                 default -> Collections.emptyList();
             };
         }

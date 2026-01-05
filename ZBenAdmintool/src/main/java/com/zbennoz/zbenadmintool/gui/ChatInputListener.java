@@ -117,11 +117,16 @@ public class ChatInputListener implements Listener {
     }
 
     private void handleBackpackStep(Player player, RankCreateSession session, String message) {
-        int slots = 27;
+        int slots = plugin.getRankManager().defaultBackpackSlotsFor(session.getName());
         if (!message.equalsIgnoreCase("skip")) {
             try {
                 slots = Integer.parseInt(message);
             } catch (NumberFormatException ex) {
+                player.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
+                player.sendMessage(plugin.getMessages().raw("rank.create.prompt_backpack"));
+                return;
+            }
+            if (!plugin.getRankManager().isValidBackpackSize(slots)) {
                 player.sendMessage(plugin.getMessages().raw("rank.invalid_backpack"));
                 player.sendMessage(plugin.getMessages().raw("rank.create.prompt_backpack"));
                 return;
@@ -140,7 +145,7 @@ public class ChatInputListener implements Listener {
                 session.getPriority(),
                 "",
                 "",
-                session.getBackpackSlots() == null ? 27 : session.getBackpackSlots());
+                session.getBackpackSlots() == null ? plugin.getRankManager().defaultBackpackSlotsFor(session.getName()) : session.getBackpackSlots());
         if (success) {
             player.sendMessage(plugin.getMessages().raw("rank.created").replace("%name%", session.getName()));
             sessions.remove(player.getUniqueId());

@@ -2,14 +2,18 @@
 
 ## Features
 - `/backpack` öffnet einen persönlichen Inventar-Rucksack (Bundle-Item + GUI).
-- Inventargrößen per Permission (9–54 Slots) skalierbar.
+- Inventargrößen: 9, 18, 27, 36, 45 oder 54 Slots.
+  - Standard ohne Vorgabe: 9 Slots (oder via Permission `zbenbackpack.size.*`).
+  - Per API (z. B. aus ZBenAdmintool) kann pro Spieler sofort eine Wunschgröße gesetzt werden.
 - Inhalte werden in SQLite (`backpacks.db`) gespeichert und beim Schließen automatisch gesichert.
 - Verhalten bei Tod konfigurierbar (z. B. Items behalten).
 
 ## Quickstart
 1. Jar in `plugins/` legen und Server starten.
 2. Mit `/backpack` den Rucksack öffnen; Item wird als Bundle mit Marker gespeichert.
-3. Permissions verteilen, um größere Größen freizuschalten (z. B. `zbenbackpack.size.27`).
+3. Größenvorgaben:
+   - Entweder Permissions verteilen (`zbenbackpack.size.27` etc.).
+   - Oder ein externes Plugin wie **ZBenAdmintool** nutzt die API `applyBackpackSize(UUID, int)` zum Setzen.
 
 ## Installation
 - **Voraussetzungen:** Paper/Spigot 1.21, Java 17+.
@@ -28,7 +32,12 @@
 
 ## Permissions
 - `zbenbackpack.size.9` (Default: true)
-- `zbenbackpack.size.18/27/36/45/54` (Default: op) – legt maximale Slots fest.
+- `zbenbackpack.size.18/27/36/45/54` (Default: op) – legt maximale Slots fest, falls keine Größe per API gespeichert ist.
+
+## API / Integration
+- Öffentliche Service-Methode: `applyBackpackSize(UUID playerId, int newSize)` (9, 18, 27, 36, 45 oder 54).
+- Erreichbar über `ZBenBackpackPlugin#getBackpackService()` oder direkt `ZBenBackpackPlugin#applyBackpackSize(...)`.
+- Wird die Größe verkleinert, landen überschüssige Items zuerst im Spielerinventar; was nicht passt, dropt vor dem Spieler. Für Offline-Spieler bleiben überschüssige Items in der Datenbank erhalten und werden beim nächsten Öffnen verteilt, bevor das neue Inventar angezeigt wird.
 
 ## Beispiele
 - VIP-Perk: Spielern die Permission `zbenbackpack.size.36` geben für größere Taschen.
