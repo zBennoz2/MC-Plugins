@@ -11,11 +11,14 @@ import com.zbennoz.zbencoins.database.TransactionDao;
 import com.zbennoz.zbencoins.gui.GuiManager;
 import com.zbennoz.zbencoins.listener.PlayerJoinListener;
 import com.zbennoz.zbencoins.listener.MarketChatListener;
+import com.zbennoz.zbencoins.listener.ServerOfferChatListener;
 import com.zbennoz.zbencoins.listener.JobChatListener;
 import com.zbennoz.zbencoins.job.JobDao;
 import com.zbennoz.zbencoins.job.JobLogDao;
 import com.zbennoz.zbencoins.market.MarketLogDao;
 import com.zbennoz.zbencoins.market.OfferDao;
+import com.zbennoz.zbencoins.serveroffer.ServerOfferDao;
+import com.zbennoz.zbencoins.serveroffer.ServerOfferService;
 import com.zbennoz.zbencoins.service.CoinService;
 import com.zbennoz.zbencoins.service.JobService;
 import com.zbennoz.zbencoins.service.MarketService;
@@ -37,6 +40,7 @@ public class ZBenCoinsPlugin extends JavaPlugin {
     private CoinService coinService;
     private MarketService marketService;
     private JobService jobService;
+    private ServerOfferService serverOfferService;
     private GuiManager guiManager;
 
     @Override
@@ -57,11 +61,13 @@ public class ZBenCoinsPlugin extends JavaPlugin {
         TransactionDao transactionDao = new TransactionDao(database.getConnection());
         OfferDao offerDao = new OfferDao(database.getConnection());
         MarketLogDao marketLogDao = new MarketLogDao(database.getConnection());
+        ServerOfferDao serverOfferDao = new ServerOfferDao(database.getConnection());
         JobDao jobDao = new JobDao(database.getConnection());
         JobLogDao jobLogDao = new JobLogDao(database.getConnection());
         playerService = new PlayerService(this, playerDao, configManager.getConfig());
         coinService = new CoinService(this, playerDao, transactionDao);
         marketService = new MarketService(this, offerDao, marketLogDao, playerDao, transactionDao, database.getConnection());
+        serverOfferService = new ServerOfferService(this, serverOfferDao, playerDao, transactionDao, database.getConnection());
         jobService = new JobService(this, jobDao, jobLogDao, playerDao, transactionDao, database.getConnection());
 
         guiManager = new GuiManager();
@@ -75,12 +81,14 @@ public class ZBenCoinsPlugin extends JavaPlugin {
         getCommand("coins").setExecutor(new CoinsCommand(this, coinService, playerService));
         getCommand("pay").setExecutor(new PayCommand(this, coinService, playerService));
         getCommand("baltop").setExecutor(new BaltopCommand(this, coinService));
+        getCommand("serveroffer").setExecutor(new com.zbennoz.zbencoins.command.ServerOfferCommand(this, serverOfferService));
     }
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(playerService, marketService, this), this);
         Bukkit.getPluginManager().registerEvents(guiManager, this);
         Bukkit.getPluginManager().registerEvents(new MarketChatListener(marketService), this);
+        Bukkit.getPluginManager().registerEvents(new ServerOfferChatListener(serverOfferService), this);
         Bukkit.getPluginManager().registerEvents(new JobChatListener(jobService), this);
     }
 
@@ -104,6 +112,10 @@ public class ZBenCoinsPlugin extends JavaPlugin {
 
     public MarketService getMarketService() {
         return marketService;
+    }
+
+    public ServerOfferService getServerOfferService() {
+        return serverOfferService;
     }
 
     public GuiManager getGuiManager() {

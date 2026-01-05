@@ -82,6 +82,18 @@ public class Database {
             );
             stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_market_logs_offer ON market_logs(offer_id)");
 
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS server_offers (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "type TEXT NOT NULL, " +
+                    "item_data TEXT NOT NULL, " +
+                    "price_per_item INTEGER NOT NULL, " +
+                    "enabled INTEGER NOT NULL DEFAULT 1, " +
+                    "min_amount INTEGER, " +
+                    "max_amount INTEGER, " +
+                    "created_by TEXT, " +
+                    "created_at INTEGER" +
+                    ")");
+
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS jobs (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "type TEXT NOT NULL, " +

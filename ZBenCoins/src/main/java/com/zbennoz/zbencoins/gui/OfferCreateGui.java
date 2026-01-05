@@ -101,7 +101,7 @@ public class OfferCreateGui implements ManagedGui {
             marketService.requestPriceInput(clicker);
         } else if (raw == 26) {
             int limit = marketService.resolveMaxOffers(clicker);
-            if (!clicker.hasPermission("zbencoins.market.sell")) {
+            if (!clicker.hasPermission("zbencoins.market.create")) {
                 clicker.sendMessage(plugin.getConfigManager().message("market-no-sell"));
                 return;
             }

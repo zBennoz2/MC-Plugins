@@ -30,7 +30,7 @@ public class MarktMainGui implements ManagedGui {
         this.marketService = marketService;
         FileConfiguration config = plugin.getConfigManager().getConfig();
         String title = Text.colorize(config.getString("gui.title", "ZBenMarkt"));
-        this.inventory = Bukkit.createInventory(this, 27, title);
+        this.inventory = Bukkit.createInventory(this, 54, title);
         build(player);
     }
 
@@ -44,18 +44,33 @@ public class MarktMainGui implements ManagedGui {
                 .build();
 
         ItemStack markt = new GuiItemBuilder(Material.CHEST)
-                .name("&6Marktplatz")
-                .lore(List.of("&7Durchstöbere Angebote"))
+                .name("&6Spieler-Markt")
+                .lore(List.of("&7Durchstöbere Spielerangebote"))
+                .build();
+
+        ItemStack serverShop = new GuiItemBuilder(Material.DIAMOND)
+                .name("&bServer-Shop")
+                .lore(List.of("&7Kaufe Items vom Server"))
+                .build();
+
+        ItemStack serverBuy = new GuiItemBuilder(Material.OAK_LOG)
+                .name("&6Server-Ankauf")
+                .lore(List.of("&7Verkaufe Items an den Server"))
+                .build();
+
+        ItemStack myOffers = new GuiItemBuilder(Material.WRITABLE_BOOK)
+                .name("&eMeine Angebote")
+                .lore(List.of("&7Verwalte deine Einträge"))
+                .build();
+
+        ItemStack create = new GuiItemBuilder(Material.ANVIL)
+                .name("&aAngebot einstellen")
+                .lore(List.of("&7Stelle dein Item zum Verkauf ein"))
                 .build();
 
         ItemStack jobs = new GuiItemBuilder(Material.EMERALD)
                 .name("&aJobs")
                 .lore(List.of("&7Verdiene Coins", "&eNimm Aufträge an"))
-                .build();
-
-        ItemStack anbieten = new GuiItemBuilder(Material.ANVIL)
-                .name("&bAnbieten")
-                .lore(List.of("&7Stelle eigene Angebote ein"))
                 .build();
 
         ItemStack info = new GuiItemBuilder(Material.BOOK)
@@ -68,11 +83,14 @@ public class MarktMainGui implements ManagedGui {
                 .build();
 
         inventory.setItem(10, coinsInfo);
-        inventory.setItem(11, markt);
-        inventory.setItem(12, jobs);
-        inventory.setItem(14, anbieten);
-        inventory.setItem(15, info);
-        inventory.setItem(22, close);
+        inventory.setItem(20, markt);
+        inventory.setItem(22, serverShop);
+        inventory.setItem(24, serverBuy);
+        inventory.setItem(29, create);
+        inventory.setItem(30, myOffers);
+        inventory.setItem(32, jobs);
+        inventory.setItem(40, info);
+        inventory.setItem(49, close);
     }
 
     @Override
@@ -87,15 +105,18 @@ public class MarktMainGui implements ManagedGui {
         }
         int slot = event.getRawSlot();
         switch (slot) {
-            case 11 -> {
+            case 20 -> {
                 var opts = marketService.getBrowseOptions(player.getUniqueId()).copy();
                 opts.setPage(0);
                 plugin.getGuiManager().openGui(player, new MarketBrowseGui(plugin, marketService, opts, player));
             }
-            case 14 -> plugin.getGuiManager().openGui(player, new OfferCreateGui(plugin, marketService, player));
-            case 15 -> plugin.getGuiManager().openGui(player, new MarktInfoGui(plugin, coinService, player));
-            case 12 -> plugin.getGuiManager().openGui(player, new JobsMainGui(plugin, plugin.getJobService()));
-            case 22 -> player.closeInventory();
+            case 24 -> plugin.getGuiManager().openGui(player, new ServerOfferListGui(plugin, plugin.getServerOfferService(), com.zbennoz.zbencoins.serveroffer.ServerOfferType.BUY_FROM_PLAYER, player));
+            case 22 -> plugin.getGuiManager().openGui(player, new ServerOfferListGui(plugin, plugin.getServerOfferService(), com.zbennoz.zbencoins.serveroffer.ServerOfferType.SELL_TO_PLAYER, player));
+            case 29 -> plugin.getGuiManager().openGui(player, new OfferCreateGui(plugin, marketService, player));
+            case 30 -> plugin.getGuiManager().openGui(player, new MyOffersGui(plugin, marketService, player));
+            case 40 -> plugin.getGuiManager().openGui(player, new MarktInfoGui(plugin, coinService, player));
+            case 32 -> plugin.getGuiManager().openGui(player, new JobsMainGui(plugin, plugin.getJobService()));
+            case 49 -> player.closeInventory();
             default -> {
             }
         }

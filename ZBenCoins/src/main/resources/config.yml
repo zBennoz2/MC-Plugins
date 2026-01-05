@@ -14,6 +14,11 @@ listing-fee:
 market:
   default-duration-hours: 24
   default-limit: 3
+serverOffers:
+  enabled: true
+  dropItemIfInventoryFull: true
+  defaultBuyAmounts: [1,16,64]
+  defaultSellAmounts: [1,16,64]
 jobs:
   default-expiry-hours: 48
   default-max-creator: 5

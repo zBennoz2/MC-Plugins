@@ -58,4 +58,22 @@ public final class InventoryUtil {
             player.getWorld().dropItemNaturally(player.getLocation(), entry.getValue());
         }
     }
+
+    public static boolean canFit(Player player, ItemStack stack) {
+        int remaining = stack.getAmount();
+        ItemStack template = stack.clone();
+        template.setAmount(1);
+
+        for (ItemStack content : player.getInventory().getStorageContents()) {
+            if (content == null || content.getType().isAir()) {
+                remaining -= template.getMaxStackSize();
+            } else if (content.isSimilar(template) && content.getAmount() < content.getMaxStackSize()) {
+                remaining -= (content.getMaxStackSize() - content.getAmount());
+            }
+            if (remaining <= 0) {
+                return true;
+            }
+        }
+        return remaining <= 0;
+    }
 }
