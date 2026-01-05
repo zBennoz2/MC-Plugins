@@ -1,9 +1,6 @@
 package com.zbennoz.zbenbackpack.listener;
 
-import com.zbennoz.zbenbackpack.ZBenBackpackPlugin;
-import com.zbennoz.zbenbackpack.command.BackpackCommand;
-import com.zbennoz.zbenbackpack.data.BackpackDatabase;
-import net.kyori.adventure.text.Component;
+import com.zbennoz.zbenbackpack.api.BackpackService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -12,18 +9,16 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 
 public class BackpackListener implements Listener {
 
-    private final ZBenBackpackPlugin plugin;
-    private final BackpackDatabase database;
+    private final BackpackService service;
 
-    public BackpackListener(ZBenBackpackPlugin plugin, BackpackDatabase database) {
-        this.plugin = plugin;
-        this.database = database;
+    public BackpackListener(BackpackService service) {
+        this.service = service;
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getView().title().equals(Component.text("Backpack (" + event.getInventory().getSize() + ")"))) {
-            new BackpackCommand(plugin, database).save((org.bukkit.entity.Player) event.getPlayer());
+        if (service.isBackpackView(event.getView())) {
+            service.saveBackpack((org.bukkit.entity.Player) event.getPlayer());
         }
     }
 
@@ -36,8 +31,7 @@ public class BackpackListener implements Listener {
 
     @EventHandler
     public void onDamage(PlayerItemDamageEvent event) {
-        // Backpacks shouldn't take durability; marker only
-        if (event.getItem().getItemMeta() != null && event.getItem().getItemMeta().getPersistentDataContainer().has(new org.bukkit.NamespacedKey(plugin, "backpack"))) {
+        if (service.isBackpack(event.getItem())) {
             event.setCancelled(true);
         }
     }

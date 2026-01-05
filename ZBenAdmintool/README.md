@@ -19,14 +19,14 @@ Das Plugin verwaltet alle Berechtigungen intern (kein externes Permission-Plugin
 Interne Rank-Permissions sind die Quelle der Wahrheit. Beim Laden werden fehlende Rechte für bekannte Ränge automatisch ergänzt. Bukkit-Permissions werden weiterhin über das Rangsystem vergeben, dienen aber nur als Ergänzung.
 
 ### Backpack-Slots pro Rang
-Jeder Rang hat eine konfigurierbare Backpack-Größe. Standardwerte:
+Jeder Rang hat eine validierte Backpack-Größe (9/18/27/36/45/54). Standardwerte:
 - Owner: 54
 - Admin: 45
 - Moderator: 36
-- Supporter: 30
-- Spieler: 27
+- Supporter: 27
+- Spieler: 9
 
-Änderungen greifen automatisch, sobald ein Spieler den Rang erhält. Wenn das Plugin **ZBenBackpack** installiert und aktiv ist, wird die Größe per Soft-Depend reflektiert; ohne ZBenBackpack werden stillschweigend keine Änderungen vorgenommen.
+Änderungen greifen automatisch, sobald ein Spieler den Rang erhält. Wenn das Plugin **ZBenBackpack** installiert und aktiv ist, wird die Größe per Soft-Depend sofort gesetzt. Offline-Spieler behalten überschüssige Items in der Datenbank; sobald sie das Backpack öffnen, werden zu große Inventare reduziert und überschüssige Items ins Spieler-Inventar verschoben oder droppen vor dem Spieler. Ohne ZBenBackpack werden Ränge weiterhin gespeichert, die Backpack-Anpassung wird aber übersprungen.
 
 ## Befehle & Berechtigungen (über Ränge)
 - `/admin` (Alias `/admintool`): Admin-GUI (ADMIN_MENU)
@@ -61,4 +61,3 @@ Tab-Completion richtet sich nach der internen Rechteprüfung; ohne Rangberechtig
 - **Befehle überschneiden sich mit anderen Plugins**: Bei Konflikten eigene Befehle (`/ban`, `/kick`, …) gezielt nutzen oder Aliase der Dritt-Plugins deaktivieren.
 - **Backpack-Größe ändert sich nicht**: Stelle sicher, dass ZBenBackpack aktiv ist. Ohne dieses Plugin werden Änderungen am Rang zwar gespeichert, aber nicht angewendet.
 - **Offline-Inventar speichert nicht**: Stelle sicher, dass die Sitzung nicht vom Join-Lock abgebrochen wurde. Die Datei `offline-inventories/<uuid>.yml` muss schreibbar sein.
-

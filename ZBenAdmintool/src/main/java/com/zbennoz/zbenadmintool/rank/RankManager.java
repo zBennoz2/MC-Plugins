@@ -32,6 +32,7 @@ public class RankManager {
     private final Map<String, Rank> ranks = new HashMap<>();
     private final Map<UUID, String> playerRanks = new HashMap<>();
     private RankPermissionBridge permissionBridge;
+    private static final List<Integer> ALLOWED_BACKPACK_SIZES = List.of(9, 18, 27, 36, 45, 54);
 
     public RankManager(ZBenAdmintool plugin, Database database) {
         this.plugin = plugin;
@@ -55,8 +56,8 @@ public class RankManager {
             createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, "", "", 54);
             createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, "", "", 45);
             createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "", 36);
-            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "", 30);
-            createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "", 27);
+            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "", 27);
+            createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "", 9);
             applyDefaultPermissions();
         }
     }
@@ -147,10 +148,7 @@ public class RankManager {
                 int priority = rs.getInt("priority");
                 String prefix = rs.getString("prefix");
                 String suffix = rs.getString("suffix");
-                int backpackSlots = rs.getInt("backpack_slots");
-                if (backpackSlots <= 0) {
-                    backpackSlots = 27;
-                }
+                int backpackSlots = resolveBackpackSlots(name, rs.getInt("backpack_slots"));
                 Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots);
                 loadPermissions(connection, rank);
                 ranks.put(name.toLowerCase(Locale.ROOT), rank);
@@ -192,6 +190,9 @@ public class RankManager {
     public boolean createRank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots) {
         if (ranks.containsKey(name.toLowerCase(Locale.ROOT))) {
             return false;
+        }
+        if (!isValidBackpackSize(backpackSlots)) {
+            backpackSlots = defaultBackpackSlotsFor(name);
         }
         try (Connection connection = database.openConnection();
              PreparedStatement st = connection.prepareStatement("INSERT INTO ranks(name, color, priority, prefix, suffix, backpack_slots) VALUES(?,?,?,?,?,?)")) {
@@ -260,6 +261,24 @@ public class RankManager {
 
     public Collection<Rank> getRanks() {
         return ranks.values();
+    }
+
+    public boolean isValidBackpackSize(int slots) {
+        return ALLOWED_BACKPACK_SIZES.contains(slots);
+    }
+
+    public int defaultBackpackSlotsFor(String name) {
+        if (name != null && name.equalsIgnoreCase("spieler")) {
+            return 9;
+        }
+        return 27;
+    }
+
+    private int resolveBackpackSlots(String rankName, int storedValue) {
+        if (isValidBackpackSize(storedValue)) {
+            return storedValue;
+        }
+        return defaultBackpackSlotsFor(rankName);
     }
 
     public void setPlayerRank(UUID uuid, String rankName) {
@@ -367,6 +386,9 @@ public class RankManager {
     public boolean updateBackpackSlots(String rankName, int slots) {
         Rank rank = getRank(rankName);
         if (rank == null) {
+            return false;
+        }
+        if (!isValidBackpackSize(slots)) {
             return false;
         }
         try (Connection connection = database.openConnection();

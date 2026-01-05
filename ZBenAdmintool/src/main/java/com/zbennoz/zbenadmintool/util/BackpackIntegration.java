@@ -31,6 +31,16 @@ public class BackpackIntegration {
         setSizeMethod = findSetter(backpack.getClass());
 
         if (setSizeMethod == null) {
+            Object service = invokeIfPresent(backpack, "getBackpackService");
+            if (service != null) {
+                setSizeMethod = findSetter(service.getClass());
+                if (setSizeMethod != null) {
+                    targetInstance = service;
+                }
+            }
+        }
+
+        if (setSizeMethod == null) {
             Object manager = invokeIfPresent(backpack, "getBackpackManager");
             if (manager != null) {
                 setSizeMethod = findSetter(manager.getClass());
@@ -59,7 +69,7 @@ public class BackpackIntegration {
 
     private Method findSetter(Class<?> type) {
         for (Method method : type.getMethods()) {
-            if (method.getName().equalsIgnoreCase("setBackpackSize")
+            if ((method.getName().equalsIgnoreCase("setBackpackSize") || method.getName().equalsIgnoreCase("applyBackpackSize"))
                     && method.getParameterCount() == 2
                     && method.getParameterTypes()[0] == UUID.class
                     && method.getParameterTypes()[1] == int.class) {
