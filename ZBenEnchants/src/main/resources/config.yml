@@ -14,6 +14,8 @@ messages:
   book-received: '<green>Du hast {value} erhalten.</green>'
   book-applied: '<green>{value} erfolgreich angewendet.</green>'
   book-incompatible: '<red>Dieses Item ist nicht kompatibel.</red>'
+  anvil-not-enough-levels: '<red>Du hast nicht genug Erfahrungsstufen.</red>'
+  table-offer: '<yellow>Custom-Angebot Slot {slot}: {value}</yellow>'
 
 enchants:
   telekinesis:
@@ -60,3 +62,26 @@ enchants:
     regen-duration: 100
     speed-duration: 60
     cooldown: 60000
+
+enchantingTable:
+  enabled: true
+  chanceToAddCustomEnchant: 0.25
+  allowMultipleCustomEnchants: false
+  minBookshelfPower: 10
+  restrictToSupportedItems: true
+
+anvil:
+  enabled: true
+  baseCost: 3
+  costPerLevel: 2
+  allowStackedBooks: false
+
+villagers:
+  enabled: true
+  professions: ["LIBRARIAN"]
+  chancePerTradeRefresh: 0.15
+  minLevel: 1
+  maxLevel: 5
+  emeraldCost:
+    base: 12
+    perEnchantLevel: 6

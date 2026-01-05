@@ -9,17 +9,17 @@ import java.util.Set;
  * Registry aller Custom Enchants. Enthält Basisinformationen und Material-Filter.
  */
 public enum CustomEnchant {
-    TELEKINESIS("telekinesis", "Telekinesis", 3, TargetType.TOOL),
-    SMELT("smelt", "Smelt", 2, TargetType.PICKAXE),
-    EXCAVATOR("excavator", "Excavator", 1, TargetType.PICKAXE),
-    REPLANT("replant", "Replant", 3, TargetType.HOE),
-    LUMBERJACK("lumberjack", "Lumberjack", 3, TargetType.AXE),
-    LUCKY_FIND("luckyfind", "LuckyFind", 3, TargetType.TOOL),
-    GUARDIAN("guardian", "Guardian", 3, TargetType.CHESTPLATE),
-    GRAPPLE("grapple", "Grapple", 3, TargetType.BOOTS),
-    STABILITY("stability", "Stability", 3, TargetType.BOOTS),
-    SECOND_WIND("secondwind", "Second Wind", 1, TargetType.CHESTPLATE),
-    SURVEYOR("surveyor", "Surveyor", 1, TargetType.COMPASS);
+    TELEKINESIS("telekinesis", "Telekinese", 3, TargetType.TOOL),
+    SMELT("smelt", "Schmelzen", 2, TargetType.PICKAXE),
+    EXCAVATOR("excavator", "Bagger", 1, TargetType.PICKAXE),
+    REPLANT("replant", "Neuanpflanzen", 3, TargetType.HOE),
+    LUMBERJACK("lumberjack", "Holzfäller", 3, TargetType.AXE),
+    LUCKY_FIND("luckyfind", "Glücksfund", 3, TargetType.TOOL),
+    GUARDIAN("guardian", "Wächter", 3, TargetType.CHESTPLATE),
+    GRAPPLE("grapple", "Enterhaken", 3, TargetType.BOOTS),
+    STABILITY("stability", "Standfestigkeit", 3, TargetType.BOOTS),
+    SECOND_WIND("secondwind", "Zweiter Atem", 1, TargetType.CHESTPLATE),
+    SURVEYOR("surveyor", "Vermesser", 1, TargetType.COMPASS);
 
     private final String key;
     private final String displayName;

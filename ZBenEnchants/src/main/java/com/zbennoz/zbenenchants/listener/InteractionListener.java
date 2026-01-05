@@ -49,7 +49,7 @@ public class InteractionListener implements Listener {
     }
 
     private void tryApplyBook(PlayerInteractEvent event, Player player, ItemStack book, ItemStack target) {
-        CustomEnchant enchant = getEnchantFromBook(book);
+        CustomEnchant enchant = ItemUtil.getEnchantFromBook(plugin, book);
         if (enchant == null) {
             return;
         }
@@ -62,15 +62,6 @@ public class InteractionListener implements Listener {
         book.setAmount(book.getAmount() - 1);
         MessageUtil.send(plugin, player, "book-applied", enchant.getDisplayName());
         event.setCancelled(true);
-    }
-
-    private CustomEnchant getEnchantFromBook(ItemStack book) {
-        for (CustomEnchant enchant : CustomEnchant.values()) {
-            if (PDCUtil.getEnchantLevel(plugin, book, enchant) > 0) {
-                return enchant;
-            }
-        }
-        return null;
     }
 
     private void handleGrapple(PlayerInteractEvent event, Player player) {

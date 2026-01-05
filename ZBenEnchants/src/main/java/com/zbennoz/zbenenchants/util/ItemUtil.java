@@ -23,11 +23,24 @@ public final class ItemUtil {
         ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta meta = book.getItemMeta();
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + enchant.getDisplayName() + " " + roman(level));
+        lore.add(ChatColor.GRAY + "Sonderverzauberung: " + enchant.getDisplayName() + " " + roman(level));
+        lore.add(ChatColor.DARK_GRAY + "Nutze einen Amboss, um sie anzuwenden.");
         meta.setLore(lore);
         book.setItemMeta(meta);
         PDCUtil.setEnchantLevel(plugin, book, enchant, level);
         return book;
+    }
+
+    public static CustomEnchant getEnchantFromBook(ZBenEnchantsPlugin plugin, ItemStack book) {
+        if (book == null || book.getType() != Material.ENCHANTED_BOOK) {
+            return null;
+        }
+        for (CustomEnchant enchant : CustomEnchant.values()) {
+            if (PDCUtil.getEnchantLevel(plugin, book, enchant) > 0) {
+                return enchant;
+            }
+        }
+        return null;
     }
 
     public static void applyEnchant(ZBenEnchantsPlugin plugin, ItemStack target, CustomEnchant enchant, int level) {

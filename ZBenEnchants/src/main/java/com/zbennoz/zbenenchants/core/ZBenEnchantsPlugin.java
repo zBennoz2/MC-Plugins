@@ -4,7 +4,10 @@ import com.zbennoz.zbenenchants.command.ZBenEnchantsCommand;
 import com.zbennoz.zbenenchants.enchant.CustomEnchant;
 import com.zbennoz.zbenenchants.listener.BlockListener;
 import com.zbennoz.zbenenchants.listener.DamageListener;
+import com.zbennoz.zbenenchants.listener.EnchantingTableListener;
 import com.zbennoz.zbenenchants.listener.InteractionListener;
+import com.zbennoz.zbenenchants.listener.VillagerTradeListener;
+import com.zbennoz.zbenenchants.listener.anvil.AnvilListener;
 import com.zbennoz.zbenenchants.util.CooldownManager;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,6 +32,9 @@ public class ZBenEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BlockListener(this), this);
         getServer().getPluginManager().registerEvents(new DamageListener(this), this);
         getServer().getPluginManager().registerEvents(new InteractionListener(this), this);
+        getServer().getPluginManager().registerEvents(new EnchantingTableListener(this), this);
+        getServer().getPluginManager().registerEvents(new AnvilListener(this), this);
+        getServer().getPluginManager().registerEvents(new VillagerTradeListener(this), this);
 
         ZBenEnchantsCommand command = new ZBenEnchantsCommand(this);
         getCommand("zbenenchants").setExecutor(command);
