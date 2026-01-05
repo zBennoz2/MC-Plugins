@@ -44,14 +44,29 @@ public class ServerOfferAdminGui implements ManagedGui {
                 .lore(List.of(
                         "&7Typ: &e" + (offer.getType() == ServerOfferType.SELL_TO_PLAYER ? "Server-Verkauf" : "Server-Ankauf"),
                         "&7Preis/Stück: &6" + offer.getPricePerItem(),
-                        "&7Min: &e" + offer.getMinAmount().orElse(0),
-                        "&7Max: &e" + offer.getMaxAmount().orElse(0),
+                        "&7Min: &e" + offer.getMinAmount().orElse(1),
+                        "&7Max: &e" + (offer.getMaxAmount().orElse(-1) == -1 ? "∞" : offer.getMaxAmount().orElse(0)),
+                        offer.isPeriodLimitEnabled()
+                                ? "&7Limit/7T: &e" + offer.getPeriodUsedAmount() + " / " +
+                                offer.getPeriodMaxAmount().orElse(0)
+                                : "&7Limit: &7Keins",
                         offer.isEnabled() ? "&aAktiv" : "&cDeaktiviert"
                 ))
                 .build();
         ItemStack price = new GuiItemBuilder(Material.SUNFLOWER).name("&ePreis anpassen").build();
         ItemStack min = new GuiItemBuilder(Material.IRON_INGOT).name("&eMindestmenge anpassen").build();
         ItemStack max = new GuiItemBuilder(Material.GOLD_INGOT).name("&eMaximalmenge anpassen").build();
+        ItemStack periodToggle = new GuiItemBuilder(offer.isPeriodLimitEnabled() ? Material.CLOCK : Material.REDSTONE_TORCH)
+                .name("&eWöchentliches Limit")
+                .lore(List.of(
+                        offer.isPeriodLimitEnabled() ? "&aAktiv" : "&cDeaktiviert",
+                        "&7Max/7 Tage: &e" + (offer.getPeriodMaxAmount().orElse(-1) == -1 ? "∞" : offer.getPeriodMaxAmount().orElse(0))
+                ))
+                .build();
+        ItemStack periodMax = new GuiItemBuilder(Material.PAPER)
+                .name("&eMax pro 7 Tage anpassen")
+                .lore(List.of("&7Aktuell: &e" + (offer.getPeriodMaxAmount().orElse(-1) == -1 ? "∞" : offer.getPeriodMaxAmount().orElse(0))))
+                .build();
         ItemStack toggle = new GuiItemBuilder(offer.isEnabled() ? Material.LIME_DYE : Material.GRAY_DYE)
                 .name(offer.isEnabled() ? "&cDeaktivieren" : "&aAktivieren")
                 .build();
@@ -64,6 +79,8 @@ public class ServerOfferAdminGui implements ManagedGui {
         inventory.setItem(13, info);
         inventory.setItem(14, toggle);
         inventory.setItem(15, delete);
+        inventory.setItem(20, periodToggle);
+        inventory.setItem(24, periodMax);
         inventory.setItem(22, back);
     }
 
@@ -82,6 +99,8 @@ public class ServerOfferAdminGui implements ManagedGui {
             case 10 -> service.requestPriceInput(player, offerId);
             case 11 -> service.requestMinInput(player, offerId);
             case 12 -> service.requestMaxInput(player, offerId);
+            case 20 -> service.toggleOfferPeriodLimit(offerId, player);
+            case 24 -> service.requestPeriodMaxInput(player, offerId);
             case 14 -> {
                 service.toggleOffer(offerId);
                 reopen(player);

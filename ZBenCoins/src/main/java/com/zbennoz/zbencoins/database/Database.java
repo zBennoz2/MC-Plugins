@@ -90,9 +90,20 @@ public class Database {
                     "enabled INTEGER NOT NULL DEFAULT 1, " +
                     "min_amount INTEGER, " +
                     "max_amount INTEGER, " +
+                    "period_limit_enabled INTEGER NOT NULL DEFAULT 0, " +
+                    "period_ticks INTEGER NOT NULL DEFAULT 168000, " +
+                    "period_max_amount INTEGER, " +
+                    "period_used_amount INTEGER NOT NULL DEFAULT 0, " +
+                    "period_start_millis INTEGER, " +
                     "created_by TEXT, " +
                     "created_at INTEGER" +
                     ")");
+
+            addColumn(stmt, "server_offers", "period_limit_enabled", "INTEGER NOT NULL DEFAULT 0");
+            addColumn(stmt, "server_offers", "period_ticks", "INTEGER NOT NULL DEFAULT 168000");
+            addColumn(stmt, "server_offers", "period_max_amount", "INTEGER");
+            addColumn(stmt, "server_offers", "period_used_amount", "INTEGER NOT NULL DEFAULT 0");
+            addColumn(stmt, "server_offers", "period_start_millis", "INTEGER");
 
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS jobs (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -125,6 +136,14 @@ public class Database {
                     "created_at INTEGER NOT NULL)"
             );
             stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_job_logs_job ON job_logs(job_id)");
+        }
+    }
+
+    private void addColumn(Statement stmt, String table, String column, String definition) throws SQLException {
+        try {
+            stmt.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+        } catch (SQLException ignored) {
+            // Column already exists
         }
     }
 

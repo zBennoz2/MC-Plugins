@@ -1,3 +1,4 @@
+debug: false
 starting-coins: 1000
 currency-name: "ZBenCoins"
 gui:
@@ -19,6 +20,12 @@ serverOffers:
   dropItemIfInventoryFull: true
   defaultBuyAmounts: [1,16,64]
   defaultSellAmounts: [1,16,64]
+  defaultMaxAmount: 64
+  periodLimit:
+    enabledByDefault: false
+    periodTicks: 168000
+    useRealTimeInsteadOfWorldTime: true
+    defaultMaxAmountPerPeriod: 0
 jobs:
   default-expiry-hours: 48
   default-max-creator: 5

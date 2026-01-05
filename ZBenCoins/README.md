@@ -25,6 +25,11 @@ Ohne Berechtigung sind die Buttons im GUI ausgegraut und informieren den Spieler
 - Mit Rechtsklick auf ein bestehendes Angebot öffnest du die Verwaltung (Preis/Limits anpassen, aktivieren/deaktivieren). Shift-Rechtsklick löscht ein Angebot.
 - Alternativ: `/serveroffer create <buy|sell> <preis> [min] [max]` nutzt das Item aus der Hand.
 
+### Wöchentliches Limit (7 Minecraft-Tage)
+- Im Erstell-/Bearbeitungs-GUI kann mit dem **Wöchentliches Limit**-Button die Mengenbegrenzung aktiviert/deaktiviert werden.
+- Über **Max pro 7 Tage setzen** wird die Gesamtmenge abgefragt (0 oder -1 bedeutet unbegrenzt). Die Eingabe erfolgt im Chat und wird direkt gespeichert.
+- Das Limit zählt alle Käufe/Verkäufe über 7 Minecraft-Tage (Standard: 168000 Ticks ≈ 140 Minuten Realtime). Danach wird es automatisch zurückgesetzt.
+
 ## Hinweise
 - Alle Texte im GUI sind auf Deutsch gehalten.
 - Die Filter arbeiten clientfreundlich: Eingaben laufen über den Chat und laden das jeweilige GUI direkt neu.
