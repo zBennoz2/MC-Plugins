@@ -15,6 +15,24 @@ flags:
   default:
     interact_protected: false
 
+explosions:
+  creeper:
+    preventBlockDamageInClaims: true
+    cancelExplosion: false
+  alsoProtectAgainstOtherExplosions:
+    enabled: false
+    cancelExplosion: false
+
+borders:
+  enabled: true
+  command: "claimborders"
+  aliases: ["cborders", "claimgrenzen"]
+  radiusChunks: 3
+  updateIntervalTicks: 15
+  particleSpacing: 1.5
+  yMode: "PLAYER_FEET"
+  showOnlyOwnClaims: false
+
 ranks:
   list:
     Admin:

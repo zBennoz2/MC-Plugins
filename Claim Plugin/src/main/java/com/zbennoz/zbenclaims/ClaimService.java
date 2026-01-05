@@ -62,6 +62,11 @@ public class ClaimService {
         return Optional.empty();
     }
 
+    public boolean isChunkClaimed(World world, int chunkX, int chunkZ) {
+        ChunkKey key = new ChunkKey(world.getUID(), chunkX, chunkZ);
+        return claimCache.containsKey(key);
+    }
+
     public boolean isMember(Claim claim, UUID uuid) {
         if (claim.ownerUuid().equals(uuid)) return true;
         return isTrusted(claim.id(), uuid);

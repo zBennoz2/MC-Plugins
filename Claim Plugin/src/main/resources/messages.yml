@@ -42,3 +42,8 @@ autosort:
   noPermission: "&cDazu hast du keine Rechte."
   locked: "&cDieses Inventar ist gesperrt."
   sorted: "&aInventar sortiert!"
+
+borders:
+  toggledOn: "&aClaim-Grenzen: &2AN"
+  toggledOff: "&eClaim-Grenzen: &cAUS"
+  disabled: "&cGrenzanzeige ist aktuell deaktiviert."
