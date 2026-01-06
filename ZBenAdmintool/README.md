@@ -7,6 +7,28 @@ Admin- und Moderations-Tool für Paper 1.21 (Java 21) mit internem Rangsystem.
 2. Die erzeugte JAR aus `build/libs` in den `plugins/`-Ordner kopieren.
 3. Server starten und bei Bedarf `config.yml`/`messages.yml` anpassen.
 
+## Admin-Mode & Beobachtung
+- `/adminmode` oder Button im Admin-GUI aktiviert den Admin-Mode, setzt dich in den Spectator, aktiviert (konfigurierbar) Nachtsicht und Unsichtbarkeit und speichert deinen vorherigen Zustand. Beim Beenden wird alles wiederhergestellt.
+- Admin-Mode und Beobachtung benötigen die internen Rechte `ADMIN_MODE` sowie `OBSERVE/TELEPORT` und werden geloggt.
+- Im Admin-GUI gibt es „Spieler beobachten“: Liste aller Online-Spieler, anklickbar zum sicheren Teleport (leicht erhöht, Richtung wird übernommen). Jeder Teleport wird in `teleport-logs.yml` gespeichert.
+
+## Verdächtige Aktivitäten (Mining-Erkennung)
+- Aktivierbar über `suspiciousMining.enabled` in der `config.yml`.
+- Über `BlockBreakEvent` werden seltene Erze im Zeitfenster `windowSeconds` gesammelt. Werden die in `thresholds` definierten Werte überschritten (Y-Limits respektiert), entsteht ein Verdachtsfall.
+- Creative/OP können optional ignoriert werden (`ignoreCreative`, `ignoreOperators`).
+- Staff mit `admintool.alerts` wird benachrichtigt (Action-Text/Chat). Verdachtsfälle werden in `suspicious-mining.yml` gespeichert (Aufbewahrung `storeEventsDays`).
+- Neues GUI „Verdächtige Aktivitäten“ listet die letzten Fälle (Spieler, Erz, Anzahl, Ort, Zeitpunkt). Klick-Aktionen: Teleport zum Spieler, als erledigt markieren.
+
+## Erz-Sicht & Ore-Xray
+- Abschnitt `oreVision` in der `config.yml` steuert Radius, Scan-Intervall, Partikel, Ores-Whitelist und Limits.
+- „Erz-Highlight“ im Admin-GUI: markiert Ores in der Nähe mit Partikeln (nur für dich sichtbar).
+- Optional „Ore-Xray View“: Wenn ProtocolLib installiert ist, werden für den Admin in der Nähe alle Nicht-Erze clientseitig als Luft gesendet. Ohne ProtocolLib bleibt der Button wirkungslos und bricht sicher ab.
+- Keine serverseitigen Block-Änderungen, beim Deaktivieren/Logout werden die Fake-Änderungen zurückgesetzt.
+
+## Admin-GUI
+- Neue Buttons: Spieler beobachten, Verdächtige Aktivitäten, Erz-Highlight (Toggle), Ore-Xray (nur mit ProtocolLib).
+- Inventory-Interaktionen sind geschützt; Items können nicht entnommen werden.
+
 ## Ränge & Rechte
 Das Plugin verwaltet alle Berechtigungen intern (kein externes Permission-Plugin nötig). Standard-Ränge und Rechte:
 

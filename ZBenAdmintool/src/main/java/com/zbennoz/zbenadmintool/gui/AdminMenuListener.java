@@ -28,7 +28,7 @@ public class AdminMenuListener implements Listener {
     }
 
     public static void openMenu(ZBenAdmintool plugin, Player player) {
-        Inventory inv = Bukkit.createInventory(null, 27, "Admin-Tool");
+        Inventory inv = Bukkit.createInventory(null, 36, "Admin-Tool");
         inv.setItem(10, button(Material.BEACON, "Admin-Mode", "adminmode"));
         inv.setItem(11, button(Material.ENDER_EYE, "Vanish", "vanish"));
         inv.setItem(12, button(Material.DIAMOND_SWORD, "Gamemode 1", "gm1"));
@@ -40,6 +40,12 @@ public class AdminMenuListener implements Listener {
                 "§7Erstellt einen neuen Rang",
                 "§7Eingabe erfolgt im Chat",
                 "§7Tippe 'abbrechen' zum Stoppen"));
+        inv.setItem(31, button(Material.COMPASS, "Spieler beobachten", "observe"));
+        inv.setItem(32, button(Material.DEEPSLATE_DIAMOND_ORE, "Verdächtige Aktivitäten", "suspicious"));
+        inv.setItem(33, button(Material.SPYGLASS, "Erz-Highlight", "orevision"));
+        inv.setItem(34, button(Material.LIGHT, "Ore-Xray (ProtocolLib)", "orexray",
+                "§7Optional, blendet Steine aus",
+                "§7Nur wenn ProtocolLib installiert ist"));
         player.openInventory(inv);
     }
 
@@ -101,6 +107,32 @@ public class AdminMenuListener implements Listener {
                 } else {
                     player.sendMessage(plugin.getMessages().raw("no_permission"));
                 }
+            }
+            case "observe" -> {
+                if (resolver.has(player, RankPermission.OBSERVE)) {
+                    plugin.getObserveGui().open(player, 0);
+                } else {
+                    player.sendMessage(plugin.getMessages().raw("no_permission"));
+                }
+            }
+            case "suspicious" -> {
+                if (resolver.has(player, RankPermission.OBSERVE)) {
+                    plugin.getSuspiciousActivityGui().open(player);
+                } else {
+                    player.sendMessage(plugin.getMessages().raw("no_permission"));
+                }
+            }
+            case "orevision" -> {
+                boolean enabled = plugin.getOreVisionService().toggleHighlight(player);
+                player.sendMessage(enabled ? plugin.getMessages().raw("orevision.enabled") : plugin.getMessages().raw("orevision.disabled"));
+            }
+            case "orexray" -> {
+                if (!plugin.getProtocolLibHook().isAvailable()) {
+                    player.sendMessage(plugin.getMessages().raw("orexray.unavailable"));
+                    return;
+                }
+                boolean enabled = plugin.getOreVisionService().toggleOreXray(player);
+                player.sendMessage(enabled ? plugin.getMessages().raw("orexray.enabled") : plugin.getMessages().raw("orexray.disabled"));
             }
             default -> {
             }

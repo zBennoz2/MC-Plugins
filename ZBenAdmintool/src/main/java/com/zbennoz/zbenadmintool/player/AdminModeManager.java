@@ -5,6 +5,8 @@ import com.zbennoz.zbenadmintool.text.MessageService;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,14 +36,20 @@ public class AdminModeManager {
     }
 
     public void enable(Player player) {
-        AdminState state = new AdminState(player.getGameMode(), player.getAllowFlight());
+        AdminState state = new AdminState(player.getGameMode(), player.getAllowFlight(), player.isFlying(), player.getActivePotionEffects());
         states.put(player.getUniqueId(), state);
-        player.setGameMode(GameMode.CREATIVE);
-        if (plugin.getConfig().getBoolean("adminmode.enableFly", true)) {
-            player.setAllowFlight(true);
+        player.setGameMode(GameMode.SPECTATOR);
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        if (plugin.getConfig().getBoolean("adminmode.nightVision", true)) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0, false, false, false));
+        }
+        if (plugin.getConfig().getBoolean("adminmode.invisibility", true)) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0, false, false, false));
         }
         vanishManager.setVanish(player, true);
         player.sendActionBar(stateMessage(true));
+        plugin.getLogger().info(player.getName() + " hat den Admin-Mode aktiviert.");
     }
 
     public void disable(Player player) {
@@ -49,9 +57,16 @@ public class AdminModeManager {
         if (state != null) {
             player.setGameMode(state.previousMode());
             player.setAllowFlight(state.hadFlight());
+            player.setFlying(state.hadFlight() && state.wasFlying());
+            player.getActivePotionEffects().stream()
+                    .map(PotionEffect::getType)
+                    .filter(type -> type == PotionEffectType.NIGHT_VISION || type == PotionEffectType.INVISIBILITY)
+                    .forEach(player::removePotionEffect);
+            state.effects().forEach(player::addPotionEffect);
         }
         vanishManager.setVanish(player, false);
         player.sendActionBar(stateMessage(false));
+        plugin.getLogger().info(player.getName() + " hat den Admin-Mode deaktiviert.");
     }
 
     public void disableAll() {
@@ -62,5 +77,5 @@ public class AdminModeManager {
         return messages.raw(enabled ? "adminmode.enabled" : "adminmode.disabled");
     }
 
-    private record AdminState(GameMode previousMode, boolean hadFlight) {}
+    private record AdminState(GameMode previousMode, boolean hadFlight, boolean wasFlying, Iterable<PotionEffect> effects) {}
 }

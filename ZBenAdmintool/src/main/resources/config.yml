@@ -12,5 +12,36 @@ inspector:
   maxEntries: 20
 adminmode:
   enableFly: true
+  nightVision: true
+  invisibility: true
 ranks:
   defaultRank: Spieler
+suspiciousMining:
+  enabled: true
+  windowSeconds: 300
+  thresholds:
+    DIAMOND_ORE: 12
+    DEEPSLATE_DIAMOND_ORE: 12
+    ANCIENT_DEBRIS: 6
+    EMERALD_ORE: 10
+  minY:
+    DIAMOND_ORE: 40
+    DEEPSLATE_DIAMOND_ORE: 10
+  notifyStaff: true
+  staffNotifyPermission: "admintool.alerts"
+  storeEventsDays: 14
+  ignoreCreative: true
+  ignoreOperators: true
+oreVision:
+  enabled: true
+  radius: 20
+  scanIntervalTicks: 20
+  maxBlocksPerScan: 12000
+  ores:
+    - DIAMOND_ORE
+    - DEEPSLATE_DIAMOND_ORE
+    - ANCIENT_DEBRIS
+    - EMERALD_ORE
+    - GOLD_ORE
+    - DEEPSLATE_GOLD_ORE
+  particlesEnabled: true

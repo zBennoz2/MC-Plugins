@@ -16,7 +16,9 @@ public enum RankPermission {
     VANISH,
     LOGS,
     OFFLINE_INVENTORY,
-    OFFLINE_ENDERCHEST;
+    OFFLINE_ENDERCHEST,
+    OBSERVE,
+    TELEPORT;
 
     public static RankPermission fromString(String input) {
         if (input == null) {
