@@ -75,6 +75,7 @@ anvil:
   baseCost: 3
   costPerLevel: 2
   allowStackedBooks: false
+  debug: false
 
 villagers:
   enabled: true

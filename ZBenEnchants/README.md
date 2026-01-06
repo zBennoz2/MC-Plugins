@@ -13,6 +13,12 @@ Deutschsprachiges Custom-Enchant-Plugin. Speichert Verzauberungen sauber im Pers
 - **Dorfbewohner:** Librarians können Bücher anbieten (Chance `villagers.chancePerTradeRefresh`). Preis skaliert über `villagers.emeraldCost`.
 - **Admin-Befehl:** `/zbenenchants givebook <spieler> <enchant> <level>`
 
+## Amboss
+- Vanilla-Funktionen (Reparieren, Umbenennen, Zusammenführen) bleiben unverändert erhalten.
+- Custom-Bücher werden nur dann abgefangen, wenn ein gültiges ZBenEnchants-Buch im rechten Slot liegt; alle anderen Kombinationen laufen über die normale Serverlogik.
+- Reparaturen funktionieren auch auf Items mit Custom-Enchants, solange das Material passt.
+- Debug-Logs für Amboss-Vorgänge lassen sich über `anvil.debug: true` aktivieren; Ausgabe mit Prefix `[ZBenEntchant]`.
+
 ## Verzauberungsliste
 | Name | Beschreibung | Max-Level | Anwendbar auf | Erwerb |
 | --- | --- | --- | --- | --- |

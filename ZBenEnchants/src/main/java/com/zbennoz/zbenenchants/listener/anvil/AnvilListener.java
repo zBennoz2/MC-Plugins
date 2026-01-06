@@ -51,14 +51,24 @@ public class AnvilListener implements Listener {
         boolean allowStack = plugin.getConfig().getBoolean("anvil.allowStackedBooks", false);
         DebugInfo debug = new DebugInfo(base, addition, enchantData);
 
+        if (enchantData == null) {
+            debug.reason = "kein Custom-Buch – Vanilla laufen lassen";
+            logDebug(debug);
+            return;
+        }
+
+        debug.customBook = true;
+
         if (!allowStack && addition != null && addition.getAmount() > 1) {
             debug.reason = "gestapeltes Buch nicht erlaubt";
-            finalizeResult(event, null, debug);
+            event.setResult(null);
+            logDebug(debug);
             return;
         }
 
         if (!canApplyTo(base, enchantData, debug)) {
-            finalizeResult(event, null, debug);
+            event.setResult(null);
+            logDebug(debug);
             return;
         }
 
@@ -70,7 +80,8 @@ public class AnvilListener implements Listener {
         event.setResult(result);
         pending.put(player.getUniqueId(), new PendingAnvilEnchant(enchantData.enchant(), enchantData.level(), cost));
         debug.resultSet = true;
-        finalizeResult(event, result, debug);
+        debug.cost = cost;
+        logDebug(debug);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -127,17 +138,21 @@ public class AnvilListener implements Listener {
         return true;
     }
 
-    private void finalizeResult(PrepareAnvilEvent event, ItemStack result, DebugInfo debug) {
-        event.setResult(result);
+    private void logDebug(DebugInfo debug) {
+        if (!plugin.getConfig().getBoolean("anvil.debug", false)) {
+            return;
+        }
         String enchantId = debug.enchantData != null ? debug.enchantData.enchant().getKey() : "-";
         String enchantLevel = debug.enchantData != null ? String.valueOf(debug.enchantData.level()) : "-";
-        logger.info(String.format("[Amboss] Links=%s | Rechts=%s | Enchant=%s | Level=%s | kompatibel=%s | Ergebnis=%s%s",
+        logger.info(String.format("[ZBenEntchant] Amboss: Links=%s | Rechts=%s | Custom-Buch=%s | Enchant=%s | Level=%s | kompatibel=%s | Ergebnis=%s | Kosten=%s%s",
                 describe(debug.left),
                 describe(debug.right),
+                debug.customBook,
                 enchantId,
                 enchantLevel,
                 debug.compatible,
                 debug.resultSet,
+                debug.cost,
                 debug.reason.isEmpty() ? "" : " | Grund: " + debug.reason));
     }
 
@@ -154,6 +169,8 @@ public class AnvilListener implements Listener {
         private final ItemUtil.EnchantData enchantData;
         private boolean compatible = false;
         private boolean resultSet = false;
+        private boolean customBook = false;
+        private int cost = 0;
         private String reason = "";
 
         private DebugInfo(ItemStack left, ItemStack right, ItemUtil.EnchantData enchantData) {
