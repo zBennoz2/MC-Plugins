@@ -15,6 +15,10 @@ public class RankCommand extends BaseCommand implements CommandExecutor, TabComp
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (plugin.getRankManager() == null) {
+            plugin.getMessages().sendRaw(sender, "&cRank-System ist deaktiviert.");
+            return true;
+        }
         if (!ensureAdmin(sender)) return true;
         if (args.length < 1) return false;
 

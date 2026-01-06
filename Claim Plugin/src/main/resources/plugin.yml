@@ -4,6 +4,7 @@ version: 1.0.0
 api-version: '1.21'
 author: ZBenNoZ
 description: Chunk-based claims with trust, flags, and rank-based claim limits.
+softdepend: [ZBenAdmintool]
 
 commands:
   claim:
@@ -30,14 +31,6 @@ commands:
     description: Admin commands for ZBenClaims.
     usage: /zbenclaims reload
     permission: claim.admin
-  rank:
-    description: Manage player ranks for claim limits and prefixes.
-    usage: /rank <set|get|list> ...
-    permission: claim.admin
-  ranks:
-    description: Verwalte Claim-Ränge und deren Eigenschaften.
-    usage: /ranks <list|info|create|delete|rename|set|addflag|removeflag|reload> ...
-    permission: claim.admin
   claimborders:
     description: Zeigt Claim-Grenzen in der Umgebung an oder aus.
     usage: /claimborders
@@ -50,8 +43,6 @@ permissions:
   zbenclaims.admin:
     default: op
   zbenclaims.admin.bypass:
-    default: op
-  zbenclaims.admin.rank:
     default: op
   claim.admin:
     default: op

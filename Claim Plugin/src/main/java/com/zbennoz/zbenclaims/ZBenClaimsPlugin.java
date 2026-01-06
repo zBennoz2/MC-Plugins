@@ -7,8 +7,8 @@ import com.zbennoz.zbenclaims.db.SQLiteDatabase;
 import com.zbennoz.zbenclaims.listeners.ProtectionListener;
 import com.zbennoz.zbenclaims.listeners.AutoSortListener;
 import com.zbennoz.zbenclaims.listeners.ExplosionsListener;
-import com.zbennoz.zbenclaims.ranks.RankManager;
 import com.zbennoz.zbenclaims.display.TabBrandingManager;
+import com.zbennoz.zbenclaims.ranks.RankManager;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,10 +31,9 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         this.database = new SQLiteDatabase(this);
         this.database.init();
 
-        this.rankManager = new RankManager(this, database);
         this.tabBrandingManager = new TabBrandingManager(this);
 
-        this.claimService = new ClaimService(this, database, messages, rankManager);
+        this.claimService = new ClaimService(this, database, messages);
         this.claimService.loadCache();
 
         this.bordersService = new BordersService(this, claimService);
@@ -43,7 +42,6 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         registerCommands();
         registerListeners();
 
-        getServer().getOnlinePlayers().forEach(rankManager::applyVisuals);
         tabBrandingManager.applyAll();
         getLogger().info("ZBenClaims enabled.");
     }
@@ -71,7 +69,6 @@ public class ZBenClaimsPlugin extends JavaPlugin {
     public void reloadAll() {
         reloadConfig();
         messages.reload();
-        rankManager.reload();
         claimService.reload();
         tabBrandingManager.applyAll();
         bordersService.reload();
@@ -84,8 +81,6 @@ public class ZBenClaimsPlugin extends JavaPlugin {
         setExec("untrust", new UntrustCommand(this));
         setExec("claims", new ClaimsCommand(this));
         setExec("zbenclaims", new AdminCommand(this));
-        setExec("rank", new RankCommand(this));
-        setExec("ranks", new RanksCommand(this));
         setExec("claimborders", new ClaimBordersCommand(this));
     }
 
@@ -101,7 +96,6 @@ public class ZBenClaimsPlugin extends JavaPlugin {
 
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new ProtectionListener(this), this);
-        getServer().getPluginManager().registerEvents(rankManager, this);
         getServer().getPluginManager().registerEvents(tabBrandingManager, this);
         getServer().getPluginManager().registerEvents(new AutoSortListener(this), this);
         getServer().getPluginManager().registerEvents(new ExplosionsListener(this, claimService), this);

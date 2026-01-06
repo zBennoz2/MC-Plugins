@@ -31,8 +31,10 @@ public class ClaimCommand extends BaseCommand implements CommandExecutor {
                     "owner", plugin.getClaimService().ownerName(res.claim().ownerUuid())
             ));
             case LIMIT_REACHED -> plugin.getMessages().send(p, "claimLimitReached", Map.of(
-                    "limit", String.valueOf(res.limit())
+                    "current", String.valueOf(res.currentClaims()),
+                    "limit", String.valueOf(res.maxClaims())
             ));
+            case FAIL -> plugin.getMessages().sendRaw(p, res.message() != null ? res.message() : "&cKonnte nicht claimen.");
             default -> plugin.getMessages().sendRaw(p, "&cKonnte nicht claimen.");
         }
         return true;
