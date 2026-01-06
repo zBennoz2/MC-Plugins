@@ -90,7 +90,9 @@ public class RankManager {
                         RankPermission.VANISH,
                         RankPermission.LOGS,
                         RankPermission.OFFLINE_INVENTORY,
-                        RankPermission.OFFLINE_ENDERCHEST));
+                        RankPermission.OFFLINE_ENDERCHEST,
+                        RankPermission.OBSERVE,
+                        RankPermission.TELEPORT));
         addDefaultPermissions("Moderator",
                 List.of(
                         "zbenadmintool.inspect",
@@ -102,7 +104,9 @@ public class RankManager {
                         RankPermission.KICK,
                         RankPermission.MUTE,
                         RankPermission.WARN,
-                        RankPermission.INSPECT));
+                        RankPermission.INSPECT,
+                        RankPermission.OBSERVE,
+                        RankPermission.TELEPORT));
         addDefaultPermissions("Supporter",
                 List.of(
                         "zbenadmintool.inspect",
@@ -122,10 +126,12 @@ public class RankManager {
             } else if (name.equals("admin")) {
                 EnumSet.of(RankPermission.BAN, RankPermission.KICK, RankPermission.MUTE, RankPermission.WARN, RankPermission.INSPECT,
                         RankPermission.RANK_MANAGE, RankPermission.ADMIN_MENU, RankPermission.ADMIN_MODE, RankPermission.VANISH,
-                        RankPermission.LOGS, RankPermission.OFFLINE_INVENTORY, RankPermission.OFFLINE_ENDERCHEST)
+                        RankPermission.LOGS, RankPermission.OFFLINE_INVENTORY, RankPermission.OFFLINE_ENDERCHEST,
+                        RankPermission.OBSERVE, RankPermission.TELEPORT)
                         .forEach(perm -> addPermission(rank.getName(), perm.name()));
             } else if (name.equals("moderator")) {
-                EnumSet.of(RankPermission.KICK, RankPermission.MUTE, RankPermission.WARN, RankPermission.INSPECT)
+                EnumSet.of(RankPermission.KICK, RankPermission.MUTE, RankPermission.WARN, RankPermission.INSPECT,
+                        RankPermission.OBSERVE, RankPermission.TELEPORT)
                         .forEach(perm -> addPermission(rank.getName(), perm.name()));
             }
         });
