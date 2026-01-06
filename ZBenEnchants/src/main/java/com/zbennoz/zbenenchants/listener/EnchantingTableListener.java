@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Logger;
 
 /**
  * Integration für den Verzauberungstisch.
@@ -24,9 +25,11 @@ public class EnchantingTableListener implements Listener {
 
     private final ZBenEnchantsPlugin plugin;
     private final Map<UUID, Map<Integer, CustomSelection>> pendingSelections = new HashMap<>();
+    private final Logger logger;
 
     public EnchantingTableListener(ZBenEnchantsPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -84,6 +87,8 @@ public class EnchantingTableListener implements Listener {
             EnchantmentOffer offer = new EnchantmentOffer(display, level, baseOffer.getCost());
             offers[slot] = offer;
             current.put(slot, new CustomSelection(enchant, level));
+            logger.info(String.format("[Zaubertisch] %s Slot %d -> %s %s", event.getEnchanter().getName(), slot + 1,
+                    enchant.getDisplayName(), ItemUtil.roman(level)));
             String message = plugin.getMessage("table-offer");
             if (message != null && !message.isEmpty()) {
                 String replaced = message.replace("{slot}", String.valueOf(slot + 1))
@@ -111,6 +116,8 @@ public class EnchantingTableListener implements Listener {
         }
         ItemUtil.applyEnchant(plugin, event.getItem(), selection.enchant, selection.level);
         event.getEnchantsToAdd().clear();
+        logger.info(String.format("[Zaubertisch] %s wählte %s %s", event.getEnchanter().getName(),
+                selection.enchant.getDisplayName(), ItemUtil.roman(selection.level)));
     }
 
     private static class CustomSelection {

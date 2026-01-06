@@ -21,7 +21,7 @@ Deutschsprachiges Custom-Enchant-Plugin. Speichert Verzauberungen sauber im Pers
 | Bagger | Flächenabbau beim Sneaken, begrenzt über Radius/Max-Blöcke. | 1 | Spitzhacken | Tisch, Amboss-Buch, Villager, Command |
 | Neuanpflanzen | Voll ausgewachsene Pflanzen werden nach dem Abbau neu gesetzt (zieht Saat aus Inventar). | 3 | Hacken | Tisch, Amboss-Buch, Villager, Command |
 | Holzfäller | Entfernt zusammenhängende Stämme in Reichweite, optional nur natürliche Bäume. | 3 | Äxte | Tisch, Amboss-Buch, Villager, Command |
-| Glücksfund | Chance auf einen zusätzlichen Drop des ersten Block-Drops. | 3 | Werkzeuge | Tisch, Amboss-Buch, Villager, Command |
+| Glücksfund | Chance auf einen zusätzlichen Drop des ersten Block-Drops. | 3 | Alle Werkzeuge | Tisch, Amboss-Buch, Villager, Command |
 | Wächter | Chance auf Absorption nach Schaden, mit Cooldown. | 3 | Brustplatten | Tisch, Amboss-Buch, Villager, Command |
 | Enterhaken | Rechtsklick-Sprung nach vorn; blockierbar im Kampf, Cooldown. | 3 | Stiefel | Tisch, Amboss-Buch, Villager, Command |
 | Standfestigkeit | Reduziert Rückstoß/Velocity. | 3 | Stiefel | Tisch, Amboss-Buch, Villager, Command |
@@ -45,11 +45,23 @@ Deutschsprachiges Custom-Enchant-Plugin. Speichert Verzauberungen sauber im Pers
 - `general.combat-tag-ms`: Dauer des Combat-Tags für Grapple-Blocker.
 - Weitere `enchants.*`-Sektionen regeln Reichweiten, Cooldowns, Black-/Whitelist.
 
+## Fehlerquellen & Debugging
+- **Amboss zeigt kein Ergebnis:**
+  - Custom-Bücher müssen `zbenenchants:id` + `zbenenchants:level` im PDC besitzen oder eine erkennbare Lore („Sonderverzauberung: …“).
+  - Jedes `PrepareAnvilEvent` wird in der Konsole geloggt (`[Amboss] ...`) – der Ablehnungsgrund steht dabei.
+- **Kein Custom-Angebot am Zaubertisch:**
+  - Mindest-Bücherregalstärke beachten (`enchantingTable.minBookshelfPower`, Standard 10).
+  - Chance per Config (`chanceToAddCustomEnchant`, Standard 25 %). Erfolgreiche Slots werden im Log mit `[Zaubertisch]` angezeigt.
+- **Villager handeln nichts:**
+  - Nur konfigurierte Professionen/Level (Standard: Librarian, Level 1–5).
+  - Chance pro Trade (`villagers.chancePerTradeRefresh`, Standard 15 %). Generierte Angebote erscheinen im Log (`[Villager]`).
+
 ## Permissions & Commands
 - `zbenenchants.givebook` – erlaubt `/zbenenchants givebook ...` (Default: OP).
 - `zbenenchants.reload` – erlaubt `/zbenenchants reload`.
 
 ## Stabilität & Hinweise
 - Daten werden im PersistentDataContainer gespeichert – kein Itemverlust beim Neuladen.
-- Amboss- und Tisch-Handling laufen auf dem Main-Thread und vermeiden Duplikate.
+- Custom-Enchants werden zusätzlich über PDC-Key `zbenenchants:id` + Level erkannt (Fallback Lore-Parser) und sauber auf Items übertragen.
+- Amboss-, Tisch- und Villager-Handling laufen auf dem Main-Thread und vermeiden Duplikate.
 - Alle Nachrichten/Lore sind deutschsprachig. Paper/Spigot 1.21.x wird unterstützt.

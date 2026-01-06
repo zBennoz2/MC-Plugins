@@ -15,6 +15,7 @@ import org.bukkit.inventory.MerchantRecipe;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Logger;
 
 /**
  * Optional: Custom-Enchant-Bücher als Librarian-Trade.
@@ -22,9 +23,11 @@ import java.util.concurrent.ThreadLocalRandom;
 public class VillagerTradeListener implements Listener {
 
     private final ZBenEnchantsPlugin plugin;
+    private final Logger logger;
 
     public VillagerTradeListener(ZBenEnchantsPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -63,6 +66,8 @@ public class VillagerTradeListener implements Listener {
         recipe.addIngredient(emeralds);
         recipe.addIngredient(normalBook);
         event.setRecipe(recipe);
+        logger.info(String.format("[Villager] %s bietet %s %s (Kosten %d Smaragde + Buch)",
+                villager.getProfession().name(), enchant.getDisplayName(), ItemUtil.roman(level), emeralds.getAmount()));
     }
 }
 
