@@ -16,7 +16,9 @@ public class RankPermissionListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        plugin.getRankManager().ensureDefaultRank(event.getPlayer().getUniqueId());
         plugin.getRankPermissionBridge().applyPermissions(event.getPlayer());
+        plugin.getRankManager().refreshPlayerTeam(event.getPlayer());
     }
 
     @EventHandler

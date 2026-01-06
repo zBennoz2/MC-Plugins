@@ -25,6 +25,7 @@ rank.help: |-
   §6/rank perm add/remove <rang> <permission>§7 - Bearbeitet Rang-Berechtigungen
   §6/rank perm list <rang>§7 - Listet Berechtigungen eines Ranges
   §6/rank backpack <rang> <slots>§7 - Setzt Backpack-Größe für einen Rang
+  §6/rank edit <rang> max_claim_chunks <anzahl>§7 - Setzt das Claim-Limit eines Ranges
 rank.list: "§7Verfügbare Ränge: %ranks%"
 rank.info_usage: "§cNutzung: /rank info <rang>"
 rank.create_usage: "§cNutzung: /rank create <rang> <farbe> <prio> [slots]"
@@ -58,10 +59,16 @@ rank.create.prompt_priority: "§7Bitte gib die Priorität ein (Zahl) oder 'skip'
 rank.create.prompt_backpack: "§7Bitte gib die Backpack-Slots ein (9,18,27,36,45,54) oder 'skip' für den Standard (Spieler: 9, sonst 27)."
 rank.create.cancelled: "§cRang-Erstellung abgebrochen."
 rank.info_backpack: "§7Backpack-Slots: %slots%"
+rank.info_claims: "§7Maximale Claim-Chunks: %chunks%"
 rank.invalid_backpack: "§cBackpack-Slots müssen 9, 18, 27, 36, 45 oder 54 sein."
 rank.backpack_usage: "§cNutzung: /rank backpack <rang> <slots>"
 rank.backpack_updated: "§aBackpack-Größe für %rank% auf %slots% gesetzt."
 rank.backpack_failed: "§cBackpack-Größe konnte nicht gesetzt werden."
+rank.edit_usage: "§cNutzung: /rank edit <rang> max_claim_chunks <anzahl>"
+rank.edit_unknown_field: "§cDieses Feld kann nicht bearbeitet werden."
+rank.invalid_claims: "§cBitte gib eine gültige Zahl für max_claim_chunks an."
+rank.claims_updated: "§aClaim-Limit für %rank% wurde auf %chunks% gesetzt."
+rank.claims_failed: "§cClaim-Limit konnte nicht geändert werden."
 observe.gui_title: "Spieler beobachten"
 observe.no_permission: "§cDu darfst Spieler nicht beobachten."
 suspicious.gui_title: "Verdächtige Aktivitäten"

@@ -1,5 +1,7 @@
 package com.zbennoz.zbenadmintool;
 
+import com.zbennoz.zbenadmintool.api.ZBenRankAPI;
+import com.zbennoz.zbenadmintool.api.ZBenRankService;
 import com.zbennoz.zbenadmintool.command.AdminCommand;
 import com.zbennoz.zbenadmintool.command.AdminModeCommand;
 import com.zbennoz.zbenadmintool.command.BanCommand;
@@ -36,6 +38,7 @@ import com.zbennoz.zbenadmintool.util.ModerationService;
 import com.zbennoz.zbenadmintool.util.OfflineInventoryService;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ZBenAdmintool extends JavaPlugin {
@@ -44,6 +47,7 @@ public class ZBenAdmintool extends JavaPlugin {
     private Database database;
     private RankManager rankManager;
     private RankPermissionBridge rankPermissionBridge;
+    private ZBenRankAPI rankAPI;
     private PermissionResolver permissionResolver;
     private VanishManager vanishManager;
     private AdminModeManager adminModeManager;
@@ -69,6 +73,7 @@ public class ZBenAdmintool extends JavaPlugin {
         this.database = new Database(this);
         this.rankManager = new RankManager(this, database);
         this.rankPermissionBridge = new RankPermissionBridge(this, rankManager);
+        this.rankAPI = new ZBenRankService(rankManager);
         this.rankManager.setPermissionBridge(rankPermissionBridge);
         this.permissionResolver = new PermissionResolver(rankManager);
         this.vanishManager = new VanishManager(this, permissionResolver);
@@ -88,11 +93,13 @@ public class ZBenAdmintool extends JavaPlugin {
 
         database.initSchema();
         rankManager.init();
+        Bukkit.getServicesManager().register(ZBenRankAPI.class, rankAPI, this, ServicePriority.Normal);
 
         registerCommands();
         registerListeners();
 
         Bukkit.getOnlinePlayers().forEach(player -> {
+            rankManager.ensureDefaultRank(player.getUniqueId());
             TabBrandingListener.applyBranding(this, player);
             vanishManager.refreshVisibility(player);
             rankManager.refreshPlayerTeam(player);
@@ -161,6 +168,10 @@ public class ZBenAdmintool extends JavaPlugin {
 
     public RankPermissionBridge getRankPermissionBridge() {
         return rankPermissionBridge;
+    }
+
+    public ZBenRankAPI getRankAPI() {
+        return rankAPI;
     }
 
     public PermissionResolver getPermissionResolver() {
