@@ -49,18 +49,17 @@ public class InteractionListener implements Listener {
     }
 
     private void tryApplyBook(PlayerInteractEvent event, Player player, ItemStack book, ItemStack target) {
-        CustomEnchant enchant = ItemUtil.getEnchantFromBook(plugin, book);
+        ItemUtil.EnchantData enchant = ItemUtil.getEnchantFromBook(plugin, book);
         if (enchant == null) {
             return;
         }
-        int level = PDCUtil.getEnchantLevel(plugin, book, enchant);
-        if (target == null || target.getType() == Material.AIR || !enchant.isApplicable(target.getType())) {
+        if (target == null || target.getType() == Material.AIR || !enchant.enchant().isApplicable(target.getType())) {
             MessageUtil.send(plugin, player, "book-incompatible");
             return;
         }
-        ItemUtil.applyEnchant(plugin, target, enchant, level);
+        ItemUtil.applyEnchant(plugin, target, enchant.enchant(), enchant.level());
         book.setAmount(book.getAmount() - 1);
-        MessageUtil.send(plugin, player, "book-applied", enchant.getDisplayName());
+        MessageUtil.send(plugin, player, "book-applied", enchant.enchant().getDisplayName());
         event.setCancelled(true);
     }
 
