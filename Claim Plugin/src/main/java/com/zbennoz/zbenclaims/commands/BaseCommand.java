@@ -29,8 +29,7 @@ public abstract class BaseCommand {
 
     protected boolean ensureAdmin(CommandSender sender) {
         if (sender.isOp() || sender.hasPermission("claim.admin")
-                || sender.hasPermission("zbenclaims.admin")
-                || sender.hasPermission("zbenclaims.admin.rank")) {
+                || sender.hasPermission("zbenclaims.admin")) {
             return true;
         }
         plugin.getMessages().send(sender, "noPermission");

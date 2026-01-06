@@ -19,6 +19,7 @@ repositories {
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT"
     implementation "org.xerial:sqlite-jdbc:3.46.1.0"
+    compileOnly files("${rootDir}/../ZBenAdmintool/build/libs/ZBenAdmintool-1.0.0.jar")
 }
 
 tasks.withType(JavaCompile).configureEach {

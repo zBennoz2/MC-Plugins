@@ -1,7 +1,7 @@
 package com.zbennoz.zbenclaims;
 
 import com.zbennoz.zbenclaims.db.Database;
-import com.zbennoz.zbenclaims.ranks.RankManager;
+import com.zbennoz.zbenadmintool.api.ZBenRankAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.OfflinePlayer;
@@ -18,7 +18,7 @@ public class ClaimService {
     private final ZBenClaimsPlugin plugin;
     private final Database db;
     private final MessageService msg;
-    private final RankManager rankManager;
+    private boolean missingRankApiWarned = false;
 
     private final ExecutorService dbWriter = Executors.newSingleThreadExecutor();
 
@@ -26,11 +26,10 @@ public class ClaimService {
     private final Map<Long, Set<UUID>> trustedCache = new ConcurrentHashMap<>();
     private final Map<Long, Map<String, Boolean>> flagCache = new ConcurrentHashMap<>();
 
-    public ClaimService(ZBenClaimsPlugin plugin, Database db, MessageService msg, RankManager rankManager) {
+    public ClaimService(ZBenClaimsPlugin plugin, Database db, MessageService msg) {
         this.plugin = plugin;
         this.db = db;
         this.msg = msg;
-        this.rankManager = rankManager;
     }
 
     public void loadCache() {
@@ -98,9 +97,22 @@ public class ClaimService {
         Claim existing = claimCache.get(key);
         if (existing != null) return ClaimResult.alreadyClaimed(existing);
 
-        int limit = rankManager.getClaimLimit(owner);
+        ZBenRankAPI rankApi = plugin.getService(ZBenRankAPI.class).orElse(null);
+        if (rankApi == null) {
+            warnMissingRankApi();
+            return ClaimResult.fail(dependencyMissingMessage());
+        }
+
         int count = db.countClaimsByOwner(owner);
-        if (count >= limit) return ClaimResult.limitReached(limit);
+        int limit;
+        try {
+            limit = rankApi.getMaxClaimChunks(owner);
+        } catch (Exception ex) {
+            warnMissingRankApi();
+            return ClaimResult.fail(dependencyMissingMessage());
+        }
+
+        if (count >= limit) return ClaimResult.limitReached(count, limit);
 
         boolean interactDefault = plugin.getConfig().getBoolean("flags.default.interact_protected", false);
         Map<String, Boolean> defaults = new HashMap<>();
@@ -172,5 +184,19 @@ public class ClaimService {
         OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
         if (op.getName() != null) return op.getName();
         return uuid.toString();
+    }
+
+    private void warnMissingRankApi() {
+        if (missingRankApiWarned) return;
+        missingRankApiWarned = true;
+        plugin.getLogger().warning("ZBenAdmintool oder ZBenRankAPI nicht verfügbar – Claims können nicht gesetzt werden.");
+    }
+
+    private String dependencyMissingMessage() {
+        String msg = this.msg.get("claimDependencyMissing");
+        if (msg == null || msg.isBlank()) {
+            return "§cClaim-System benötigt ZBenAdmintool. Bitte informiere einen Admin.";
+        }
+        return msg;
     }
 }
