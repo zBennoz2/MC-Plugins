@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class RankCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> SUBCOMMANDS = List.of("help", "list", "info", "create", "delete", "set", "remove", "perm", "backpack");
+    private static final List<String> SUBCOMMANDS = List.of("help", "list", "info", "create", "delete", "set", "remove", "perm", "backpack", "edit");
     private final ZBenAdmintool plugin;
 
     public RankCommand(ZBenAdmintool plugin) {
@@ -54,6 +54,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             case "remove" -> handleRemove(sender, args);
             case "perm" -> handlePerm(sender, args);
             case "backpack" -> handleBackpack(sender, args);
+            case "edit" -> handleEdit(sender, args);
             default -> sender.sendMessage(plugin.getMessages().raw("rank.unknown_command"));
         }
         return true;
@@ -63,7 +64,11 @@ public class RankCommand implements CommandExecutor, TabCompleter {
         if (!(sender instanceof Player player)) {
             return true;
         }
-        return plugin.getPermissionResolver().has(player, RankPermission.RANK_MANAGE);
+        Rank rank = plugin.getRankManager().getPlayerRank(player);
+        boolean isAdminRank = rank != null && (rank.getName().equalsIgnoreCase("owner") || rank.getName().equalsIgnoreCase("admin"));
+        return isAdminRank
+                || plugin.getPermissionResolver().has(player, RankPermission.RANK_MANAGE)
+                || plugin.getPermissionResolver().has(player, "zbenadmintool.rank.manage");
     }
 
     private void sendHelp(CommandSender sender) {
@@ -94,6 +99,8 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                 .replace("%priority%", String.valueOf(rank.getPriority())));
         sender.sendMessage(plugin.getMessages().raw("rank.info_backpack")
                 .replace("%slots%", String.valueOf(rank.getBackpackSlots())));
+        sender.sendMessage(plugin.getMessages().raw("rank.info_claims")
+                .replace("%chunks%", String.valueOf(rank.getMaxClaimChunks())));
         Set<String> permissions = collectPermissions(rank);
         if (permissions.isEmpty()) {
             sender.sendMessage(plugin.getMessages().raw("rank.permissions_empty"));
@@ -144,7 +151,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
             }
         }
         String legacyColor = plugin.getRankManager().parseLegacyColor(colorInput);
-        boolean success = plugin.getRankManager().createRank(name, colorInput, legacyColor, priority, "", "", backpackSlots);
+        boolean success = plugin.getRankManager().createRank(name, colorInput, legacyColor, priority, "", "", backpackSlots, 10);
         sender.sendMessage(plugin.getMessages().raw(success ? "rank.created" : "rank.create_failed").replace("%name%", name));
     }
 
@@ -262,6 +269,36 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                 .replace("%slots%", String.valueOf(slots)));
     }
 
+    private void handleEdit(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            sender.sendMessage(plugin.getMessages().raw("rank.edit_usage"));
+            return;
+        }
+        String rankName = args[1];
+        String field = args[2].toLowerCase(Locale.ROOT);
+        Rank rank = plugin.getRankManager().getRank(rankName);
+        if (rank == null) {
+            sender.sendMessage(plugin.getMessages().raw("rank.not_found"));
+            return;
+        }
+        switch (field) {
+            case "max_claim_chunks" -> {
+                int value;
+                try {
+                    value = Integer.parseInt(args[3]);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(plugin.getMessages().raw("rank.invalid_claims"));
+                    return;
+                }
+                boolean success = plugin.getRankManager().updateMaxClaimChunks(rankName, value);
+                sender.sendMessage(plugin.getMessages().raw(success ? "rank.claims_updated" : "rank.claims_failed")
+                        .replace("%rank%", rankName)
+                        .replace("%chunks%", String.valueOf(value)));
+            }
+            default -> sender.sendMessage(plugin.getMessages().raw("rank.edit_unknown_field"));
+        }
+    }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
@@ -272,7 +309,7 @@ public class RankCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "set" -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
-                case "delete", "info", "backpack" -> plugin.getRankManager().getRankNames();
+                case "delete", "info", "backpack", "edit" -> plugin.getRankManager().getRankNames();
                 case "perm" -> List.of("add", "remove", "list");
                 case "create" -> Collections.emptyList();
                 case "remove" -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
@@ -285,11 +322,17 @@ public class RankCommand implements CommandExecutor, TabCompleter {
                 case "perm" -> plugin.getRankManager().getRankNames();
                 case "create" -> colorSuggestions(args[2]);
                 case "backpack" -> List.of("9", "18", "27", "36", "45", "54");
+                case "edit" -> List.of("max_claim_chunks");
                 default -> Collections.emptyList();
             };
         }
-        if (args.length == 4 && args[0].equalsIgnoreCase("perm")) {
-            return Collections.singletonList("example.permission");
+        if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("perm")) {
+                return Collections.singletonList("example.permission");
+            }
+            if (args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("max_claim_chunks")) {
+                return List.of("10", "20", "50", "100", "999999");
+            }
         }
         return Collections.emptyList();
     }

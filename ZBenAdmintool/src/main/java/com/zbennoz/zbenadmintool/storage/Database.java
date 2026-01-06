@@ -42,9 +42,14 @@ public class Database {
     public void initSchema() {
         try (Connection connection = openConnection();
              Statement st = connection.createStatement()) {
-            st.executeUpdate("CREATE TABLE IF NOT EXISTS ranks(name TEXT PRIMARY KEY, color TEXT, priority INT, prefix TEXT, suffix TEXT, backpack_slots INT DEFAULT 27);");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS ranks(name TEXT PRIMARY KEY, color TEXT, priority INT, prefix TEXT, suffix TEXT, backpack_slots INT DEFAULT 27, max_claim_chunks INT DEFAULT 10);");
             try {
                 st.executeUpdate("ALTER TABLE ranks ADD COLUMN backpack_slots INT DEFAULT 27;");
+            } catch (SQLException ignored) {
+                // Column exists
+            }
+            try {
+                st.executeUpdate("ALTER TABLE ranks ADD COLUMN max_claim_chunks INT DEFAULT 10;");
             } catch (SQLException ignored) {
                 // Column exists
             }

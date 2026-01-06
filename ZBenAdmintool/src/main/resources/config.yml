@@ -15,7 +15,7 @@ adminmode:
   nightVision: true
   invisibility: true
 ranks:
-  defaultRank: Spieler
+  defaultRank: Stammspieler
 suspiciousMining:
   enabled: true
   windowSeconds: 300

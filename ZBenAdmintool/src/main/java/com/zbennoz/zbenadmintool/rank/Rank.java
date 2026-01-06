@@ -14,8 +14,10 @@ public class Rank {
     private final Set<String> bukkitPermissions = new HashSet<>();
     private final Set<RankPermission> rolePermissions = EnumSet.noneOf(RankPermission.class);
     private final int backpackSlots;
+    private final int maxClaimChunks;
 
-    public Rank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots) {
+    public Rank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots,
+                int maxClaimChunks) {
         this.name = name;
         this.colorText = colorText;
         this.legacyColor = legacyColor;
@@ -23,6 +25,7 @@ public class Rank {
         this.prefix = prefix;
         this.suffix = suffix;
         this.backpackSlots = backpackSlots;
+        this.maxClaimChunks = maxClaimChunks;
     }
 
     public String getName() {
@@ -59,5 +62,9 @@ public class Rank {
 
     public int getBackpackSlots() {
         return backpackSlots;
+    }
+
+    public int getMaxClaimChunks() {
+        return maxClaimChunks;
     }
 }

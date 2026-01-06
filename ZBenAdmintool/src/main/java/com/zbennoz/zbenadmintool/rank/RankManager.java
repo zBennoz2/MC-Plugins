@@ -33,6 +33,9 @@ public class RankManager {
     private final Map<UUID, String> playerRanks = new HashMap<>();
     private RankPermissionBridge permissionBridge;
     private static final List<Integer> ALLOWED_BACKPACK_SIZES = List.of(9, 18, 27, 36, 45, 54);
+    private static final int DEFAULT_MAX_CLAIM_CHUNKS = 10;
+    private static final int DEFAULT_MAX_CLAIM_STAMMSPIELER = 20;
+    private static final int DEFAULT_MAX_CLAIM_ADMIN = 999_999;
 
     public RankManager(ZBenAdmintool plugin, Database database) {
         this.plugin = plugin;
@@ -46,6 +49,8 @@ public class RankManager {
     public void init() {
         loadRanks();
         ensureDefaults();
+        ensureStammspielerRank();
+        ensureAdminClaims();
         ensureRolePermissionMappings();
         loadPlayerRanks();
         refreshAllTeams();
@@ -53,12 +58,33 @@ public class RankManager {
 
     private void ensureDefaults() {
         if (ranks.isEmpty()) {
-            createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, "", "", 54);
-            createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, "", "", 45);
-            createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "", 36);
-            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "", 27);
-            createRank("Spieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "", 9);
+            createRank("Owner", ChatColor.DARK_RED.getName(), ChatColor.DARK_RED.toString(), 100, "", "", 54, DEFAULT_MAX_CLAIM_ADMIN);
+            createRank("Admin", ChatColor.RED.getName(), ChatColor.RED.toString(), 80, "", "", 45, DEFAULT_MAX_CLAIM_ADMIN);
+            createRank("Moderator", ChatColor.GOLD.getName(), ChatColor.GOLD.toString(), 60, "", "", 36, DEFAULT_MAX_CLAIM_CHUNKS);
+            createRank("Supporter", ChatColor.GREEN.getName(), ChatColor.GREEN.toString(), 40, "", "", 27, DEFAULT_MAX_CLAIM_CHUNKS);
+            createRank("Stammspieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "", 9, DEFAULT_MAX_CLAIM_STAMMSPIELER);
             applyDefaultPermissions();
+        }
+    }
+
+    private void ensureStammspielerRank() {
+        Rank stammspieler = getRank("Stammspieler");
+        if (stammspieler == null) {
+            createRank("Stammspieler", ChatColor.WHITE.getName(), ChatColor.WHITE.toString(), 0, "", "", 9, DEFAULT_MAX_CLAIM_STAMMSPIELER);
+        } else if (stammspieler.getMaxClaimChunks() < DEFAULT_MAX_CLAIM_STAMMSPIELER) {
+            updateMaxClaimChunks(stammspieler.getName(), DEFAULT_MAX_CLAIM_STAMMSPIELER);
+        }
+    }
+
+    private void ensureAdminClaims() {
+        ensureClaimFloor("Owner", DEFAULT_MAX_CLAIM_ADMIN);
+        ensureClaimFloor("Admin", DEFAULT_MAX_CLAIM_ADMIN);
+    }
+
+    private void ensureClaimFloor(String rankName, int required) {
+        Rank rank = getRank(rankName);
+        if (rank != null && rank.getMaxClaimChunks() < required) {
+            updateMaxClaimChunks(rankName, required);
         }
     }
 
@@ -155,12 +181,21 @@ public class RankManager {
                 String prefix = rs.getString("prefix");
                 String suffix = rs.getString("suffix");
                 int backpackSlots = resolveBackpackSlots(name, rs.getInt("backpack_slots"));
-                Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots);
+                int maxClaimChunks = resolveMaxClaimChunks(name, getIntSafe(rs, "max_claim_chunks", DEFAULT_MAX_CLAIM_CHUNKS));
+                Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots, maxClaimChunks);
                 loadPermissions(connection, rank);
                 ranks.put(name.toLowerCase(Locale.ROOT), rank);
             }
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Ränge nicht laden: " + e.getMessage());
+        }
+    }
+
+    private int getIntSafe(ResultSet rs, String column, int defaultValue) {
+        try {
+            return rs.getInt(column);
+        } catch (SQLException ignored) {
+            return defaultValue;
         }
     }
 
@@ -193,23 +228,26 @@ public class RankManager {
         }
     }
 
-    public boolean createRank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots) {
+    public boolean createRank(String name, String colorText, String legacyColor, int priority, String prefix, String suffix, int backpackSlots,
+                              int maxClaimChunks) {
         if (ranks.containsKey(name.toLowerCase(Locale.ROOT))) {
             return false;
         }
         if (!isValidBackpackSize(backpackSlots)) {
             backpackSlots = defaultBackpackSlotsFor(name);
         }
+        maxClaimChunks = resolveMaxClaimChunks(name, maxClaimChunks);
         try (Connection connection = database.openConnection();
-             PreparedStatement st = connection.prepareStatement("INSERT INTO ranks(name, color, priority, prefix, suffix, backpack_slots) VALUES(?,?,?,?,?,?)")) {
+             PreparedStatement st = connection.prepareStatement("INSERT INTO ranks(name, color, priority, prefix, suffix, backpack_slots, max_claim_chunks) VALUES(?,?,?,?,?,?,?)")) {
             st.setString(1, name);
             st.setString(2, colorText);
             st.setInt(3, priority);
             st.setString(4, prefix);
             st.setString(5, suffix);
             st.setInt(6, backpackSlots);
+            st.setInt(7, maxClaimChunks);
             st.executeUpdate();
-            Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots);
+            Rank rank = new Rank(name, colorText, legacyColor, priority, prefix, suffix, backpackSlots, maxClaimChunks);
             ranks.put(name.toLowerCase(Locale.ROOT), rank);
             refreshAllTeams();
             return true;
@@ -274,10 +312,38 @@ public class RankManager {
     }
 
     public int defaultBackpackSlotsFor(String name) {
-        if (name != null && name.equalsIgnoreCase("spieler")) {
+        if (name != null && (name.equalsIgnoreCase("spieler") || name.equalsIgnoreCase("stammspieler"))) {
             return 9;
         }
         return 27;
+    }
+
+    private int defaultMaxClaimChunksFor(String name) {
+        if (name == null) {
+            return DEFAULT_MAX_CLAIM_CHUNKS;
+        }
+        String lower = name.toLowerCase(Locale.ROOT);
+        if (lower.equals("stammspieler")) {
+            return DEFAULT_MAX_CLAIM_STAMMSPIELER;
+        }
+        if (lower.equals("owner") || lower.equals("admin")) {
+            return DEFAULT_MAX_CLAIM_ADMIN;
+        }
+        return DEFAULT_MAX_CLAIM_CHUNKS;
+    }
+
+    private int resolveMaxClaimChunks(String rankName, int storedValue) {
+        int fallback = defaultMaxClaimChunksFor(rankName);
+        if (storedValue <= 0) {
+            return fallback;
+        }
+        if ((rankName.equalsIgnoreCase("owner") || rankName.equalsIgnoreCase("admin")) && storedValue < DEFAULT_MAX_CLAIM_ADMIN) {
+            return DEFAULT_MAX_CLAIM_ADMIN;
+        }
+        if (rankName.equalsIgnoreCase("stammspieler") && storedValue < DEFAULT_MAX_CLAIM_STAMMSPIELER) {
+            return DEFAULT_MAX_CLAIM_STAMMSPIELER;
+        }
+        return storedValue;
     }
 
     private int resolveBackpackSlots(String rankName, int storedValue) {
@@ -338,10 +404,37 @@ public class RankManager {
     public Rank getPlayerRank(OfflinePlayer player) {
         String name = playerRanks.get(player.getUniqueId());
         if (name == null) {
-            String defaultRank = plugin.getConfig().getString("ranks.defaultRank", "Spieler");
-            return ranks.getOrDefault(defaultRank.toLowerCase(Locale.ROOT), null);
+            Rank defaultRank = getDefaultRank();
+            return defaultRank;
         }
         return ranks.get(name.toLowerCase(Locale.ROOT));
+    }
+
+    public Rank getPlayerRank(UUID playerId) {
+        String name = playerRanks.get(playerId);
+        if (name == null) {
+            return getDefaultRank();
+        }
+        return ranks.get(name.toLowerCase(Locale.ROOT));
+    }
+
+    public void ensureDefaultRank(UUID uuid) {
+        if (playerRanks.containsKey(uuid)) {
+            return;
+        }
+        Rank defaultRank = getDefaultRank();
+        if (defaultRank != null) {
+            setPlayerRank(uuid, defaultRank.getName());
+        }
+    }
+
+    private Rank getDefaultRank() {
+        String defaultRankName = plugin.getConfig().getString("ranks.defaultRank", "Stammspieler");
+        Rank configured = ranks.get(defaultRankName.toLowerCase(Locale.ROOT));
+        if (configured != null) {
+            return configured;
+        }
+        return ranks.get("stammspieler");
     }
 
     public boolean addPermission(String rankName, String permission) {
@@ -402,7 +495,7 @@ public class RankManager {
             st.setInt(1, slots);
             st.setString(2, rankName);
             st.executeUpdate();
-            Rank updated = new Rank(rank.getName(), rank.getColorText(), rank.getLegacyColor(), rank.getPriority(), rank.getPrefix(), rank.getSuffix(), slots);
+            Rank updated = new Rank(rank.getName(), rank.getColorText(), rank.getLegacyColor(), rank.getPriority(), rank.getPrefix(), rank.getSuffix(), slots, rank.getMaxClaimChunks());
             updated.getBukkitPermissions().addAll(rank.getBukkitPermissions());
             updated.getRolePermissions().addAll(rank.getRolePermissions());
             ranks.put(rankName.toLowerCase(Locale.ROOT), updated);
@@ -414,6 +507,29 @@ public class RankManager {
             return true;
         } catch (SQLException e) {
             plugin.getLogger().warning("Konnte Backpack-Slots nicht aktualisieren: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateMaxClaimChunks(String rankName, int maxClaimChunks) {
+        Rank rank = getRank(rankName);
+        if (rank == null) {
+            return false;
+        }
+        int resolved = resolveMaxClaimChunks(rankName, maxClaimChunks);
+        try (Connection connection = database.openConnection();
+             PreparedStatement st = connection.prepareStatement("UPDATE ranks SET max_claim_chunks = ? WHERE name = ?")) {
+            st.setInt(1, resolved);
+            st.setString(2, rankName);
+            st.executeUpdate();
+            Rank updated = new Rank(rank.getName(), rank.getColorText(), rank.getLegacyColor(), rank.getPriority(), rank.getPrefix(), rank.getSuffix(), rank.getBackpackSlots(), resolved);
+            updated.getBukkitPermissions().addAll(rank.getBukkitPermissions());
+            updated.getRolePermissions().addAll(rank.getRolePermissions());
+            ranks.put(rankName.toLowerCase(Locale.ROOT), updated);
+            refreshAllTeams();
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Konnte Claim-Limit nicht aktualisieren: " + e.getMessage());
             return false;
         }
     }

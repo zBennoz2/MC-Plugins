@@ -145,7 +145,8 @@ public class ChatInputListener implements Listener {
                 session.getPriority(),
                 "",
                 "",
-                session.getBackpackSlots() == null ? plugin.getRankManager().defaultBackpackSlotsFor(session.getName()) : session.getBackpackSlots());
+                session.getBackpackSlots() == null ? plugin.getRankManager().defaultBackpackSlotsFor(session.getName()) : session.getBackpackSlots(),
+                10);
         if (success) {
             player.sendMessage(plugin.getMessages().raw("rank.created").replace("%name%", session.getName()));
             sessions.remove(player.getUniqueId());
