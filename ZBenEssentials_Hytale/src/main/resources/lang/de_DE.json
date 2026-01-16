@@ -1,0 +1,11 @@
+{
+  "command.ping": "pong",
+  "command.reload": "Konfiguration neu geladen.",
+  "command.whoami": "Du bist in der Gruppe {group} mit Rechten: {permissions}",
+  "command.setgroup": "Spieler {player} wurde der Gruppe {group} zugeordnet.",
+  "error.no_permission": "Du hast keine Berechtigung dafür.",
+  "error.group_not_found": "Diese Gruppe existiert nicht.",
+  "join.message": "{player} hat den Server betreten.",
+  "quit.message": "{player} hat den Server verlassen.",
+  "welcome.message": "{message}"
+}
