@@ -1,0 +1,11 @@
+{
+  "command.ping": "pong",
+  "command.reload": "Configuration reloaded.",
+  "command.whoami": "You are in group {group} with permissions: {permissions}",
+  "command.setgroup": "Player {player} assigned to group {group}.",
+  "error.no_permission": "You do not have permission for that.",
+  "error.group_not_found": "That group does not exist.",
+  "join.message": "{player} joined the server.",
+  "quit.message": "{player} left the server.",
+  "welcome.message": "{message}"
+}
