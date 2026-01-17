@@ -2,8 +2,10 @@ package com.zben.essentials;
 
 import com.zben.essentials.commands.ZBenCommand;
 import com.zben.essentials.services.ConfigService;
+import com.zben.essentials.services.HomeService;
 import com.zben.essentials.services.MessageService;
 import com.zben.essentials.services.PermissionService;
+import com.zben.essentials.services.TpaService;
 import com.zben.essentials.services.UserService;
 
 import java.nio.file.Path;
@@ -15,6 +17,8 @@ public class ZBenEssentialsMod {
     private MessageService messageService;
     private UserService userService;
     private PermissionService permissionService;
+    private HomeService homeService;
+    private TpaService tpaService;
     private ZBenCommand zBenCommand;
 
     public void onEnable(Path dataDirectory) {
@@ -25,12 +29,16 @@ public class ZBenEssentialsMod {
         userService = new UserService(dataDirectory.resolve("config"));
         userService.loadOrCreate();
 
+        homeService = new HomeService(dataDirectory.resolve("config"));
+        homeService.loadOrCreate();
+
         messageService = new MessageService(configService);
         messageService.loadLanguage();
 
         permissionService = new PermissionService(configService, userService);
+        tpaService = new TpaService();
 
-        zBenCommand = new ZBenCommand(configService, messageService, permissionService, userService);
+        zBenCommand = new ZBenCommand(configService, messageService, permissionService, userService, homeService, tpaService);
         zBenCommand.register();
 
         logInfo("ZBenEssentials loaded");

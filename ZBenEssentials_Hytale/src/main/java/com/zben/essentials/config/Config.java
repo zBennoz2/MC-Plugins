@@ -13,6 +13,8 @@ public class Config {
     private Map<String, ChatFormatConfig> chatFormats = new HashMap<>();
     private Map<String, GroupConfig> groups = new HashMap<>();
     private String defaultGroup = "default";
+    private Map<String, Integer> homeLimits = new HashMap<>();
+    private TpaConfig tpa = new TpaConfig();
     private Map<String, String> messageOverrides = new HashMap<>();
 
     public Config() {
@@ -22,6 +24,10 @@ public class Config {
         defaultGroupConfig.getPermissions().add("zben.ping");
         defaultGroupConfig.getPermissions().add("zben.whoami");
         groups.put("default", defaultGroupConfig);
+
+        homeLimits.put("default", 3);
+        homeLimits.put("vip", 6);
+        homeLimits.put("admin", -1);
     }
 
     public String getLanguage() {
@@ -86,6 +92,22 @@ public class Config {
 
     public void setMessageOverrides(Map<String, String> messageOverrides) {
         this.messageOverrides = messageOverrides;
+    }
+
+    public Map<String, Integer> getHomeLimits() {
+        return homeLimits;
+    }
+
+    public void setHomeLimits(Map<String, Integer> homeLimits) {
+        this.homeLimits = homeLimits;
+    }
+
+    public TpaConfig getTpa() {
+        return tpa;
+    }
+
+    public void setTpa(TpaConfig tpa) {
+        this.tpa = tpa;
     }
 
     public static class WelcomeConfig {
@@ -186,6 +208,27 @@ public class Config {
 
         public void setPermissions(List<String> permissions) {
             this.permissions = permissions;
+        }
+    }
+
+    public static class TpaConfig {
+        private int timeoutSeconds = 60;
+        private int cooldownSeconds = 30;
+
+        public int getTimeoutSeconds() {
+            return timeoutSeconds;
+        }
+
+        public void setTimeoutSeconds(int timeoutSeconds) {
+            this.timeoutSeconds = timeoutSeconds;
+        }
+
+        public int getCooldownSeconds() {
+            return cooldownSeconds;
+        }
+
+        public void setCooldownSeconds(int cooldownSeconds) {
+            this.cooldownSeconds = cooldownSeconds;
         }
     }
 }
