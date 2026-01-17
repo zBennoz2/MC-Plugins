@@ -18,12 +18,26 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
 | `/zben reload` | Konfiguration neu laden | `zben.admin` |
 | `/zben whoami` | Zeigt Gruppe und Rechte | `zben.whoami` |
 | `/zben setgroup <player> <group>` | Setzt Gruppe für Spieler | `zben.admin` |
+| `/sethome <name>` | Home speichern | `zben.home.sethome` |
+| `/home <name>` | Zu Home teleportieren | `zben.home.use` |
+| `/homes` | Homes auflisten | `zben.home.list` |
+| `/delhome <name>` | Home löschen | `zben.home.del` |
+| `/tpa <player>` | TPA-Anfrage an Spieler senden | `zben.tpa.request` |
+| `/tpahere <player>` | TPAHere-Anfrage senden | `zben.tpa.request` |
+| `/tpaccept` | TPA-Anfrage akzeptieren | `zben.tpa.respond` |
+| `/tpdeny` | TPA-Anfrage ablehnen | `zben.tpa.respond` |
 
 ## Permissions
 
 - `zben.ping` – Zugriff auf `/zben ping`
 - `zben.whoami` – Zugriff auf `/zben whoami`
 - `zben.admin` – Zugriff auf Admin-Commands
+- `zben.home.sethome` – Home setzen
+- `zben.home.use` – Home nutzen
+- `zben.home.list` – Homes anzeigen
+- `zben.home.del` – Home löschen
+- `zben.tpa.request` – TPA-Anfragen senden
+- `zben.tpa.respond` – TPA-Anfragen beantworten
 - Wildcards werden unterstützt (z. B. `zben.*`, `zben.home.*`)
 
 ## Beispiel `config.json`
@@ -44,6 +58,15 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
       "Willkommen {player}!",
       "Schau dir /zben whoami an."
     ]
+  },
+  "homeLimits": {
+    "default": 3,
+    "vip": 6,
+    "admin": -1
+  },
+  "tpa": {
+    "timeoutSeconds": 60,
+    "cooldownSeconds": 30
   },
   "joinQuit": {
     "enabled": true,
@@ -71,7 +94,8 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
       "permissions": [
         "zben.ping",
         "zben.whoami",
-        "zben.home.*"
+        "zben.home.*",
+        "zben.tpa.*"
       ]
     },
     "admin": {
@@ -82,6 +106,8 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
   }
 }
 ```
+
+Homes werden serverseitig in `config/homes.json` gespeichert. TPA-Anfragen sind temporär und werden nicht persistiert.
 
 ## Troubleshooting
 
