@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.zbennoz.hytale'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // TODO: Add Hytale server/modloader dependencies here when available.
+    // Example:
+    // implementation 'com.hytale:server-api:VERSION'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+            include 'lang/*.json'
+        }
+    }
+}
+
+jar {
+    archiveFileName = 'ZBenEssentials-Hytale-1.0.0.jar'
+}
+
+tasks.named('jar').configure {
+    doLast {
+        logger.lifecycle("Created JAR: ${archiveFile.get().asFile}")
+    }
+}
