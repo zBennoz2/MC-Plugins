@@ -26,6 +26,13 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
 | `/tpahere <player>` | TPAHere-Anfrage senden | `zben.tpa.request` |
 | `/tpaccept` | TPA-Anfrage akzeptieren | `zben.tpa.respond` |
 | `/tpdeny` | TPA-Anfrage ablehnen | `zben.tpa.respond` |
+| `/back` | Zur letzten Position teleportieren | `zben.back` |
+| `/setspawn` | Spawn setzen | `zben.spawn.set` |
+| `/spawn` | Zum Spawn teleportieren | `zben.spawn.use` |
+| `/setwarp <name>` | Warp setzen | `zben.warp.set` |
+| `/warp <name>` | Zu Warp teleportieren | `zben.warp.use` |
+| `/delwarp <name>` | Warp löschen | `zben.warp.del` |
+| `/warps` | Warps auflisten | `zben.warp.list` |
 
 ## Permissions
 
@@ -38,6 +45,14 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
 - `zben.home.del` – Home löschen
 - `zben.tpa.request` – TPA-Anfragen senden
 - `zben.tpa.respond` – TPA-Anfragen beantworten
+- `zben.back` – Zur letzten Position teleportieren
+- `zben.spawn.set` – Spawn setzen
+- `zben.spawn.use` – Spawn nutzen
+- `zben.warp.set` – Warp setzen
+- `zben.warp.use` – Warp nutzen
+- `zben.warp.del` – Warp löschen
+- `zben.warp.list` – Warps anzeigen
+- `zben.back.*`, `zben.spawn.*`, `zben.warp.*` – Wildcards für Back/Spawn/Warp
 - Wildcards werden unterstützt (z. B. `zben.*`, `zben.home.*`)
 
 ## Beispiel `config.json`
@@ -64,6 +79,15 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
     "vip": 6,
     "admin": -1
   },
+  "back": {
+    "enabled": true
+  },
+  "spawn": {
+    "enabled": true
+  },
+  "warps": {
+    "enabled": true
+  },
   "tpa": {
     "timeoutSeconds": 60,
     "cooldownSeconds": 30
@@ -87,7 +111,11 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
     "default": {
       "permissions": [
         "zben.ping",
-        "zben.whoami"
+        "zben.whoami",
+        "zben.back",
+        "zben.spawn.use",
+        "zben.warp.use",
+        "zben.warp.list"
       ]
     },
     "vip": {
@@ -95,7 +123,10 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
         "zben.ping",
         "zben.whoami",
         "zben.home.*",
-        "zben.tpa.*"
+        "zben.tpa.*",
+        "zben.back",
+        "zben.spawn.*",
+        "zben.warp.*"
       ]
     },
     "admin": {
@@ -107,7 +138,7 @@ ZBenEssentials ist ein eigenständiger Essentials-Mod für Hytale-Server ohne OP
 }
 ```
 
-Homes werden serverseitig in `config/homes.json` gespeichert. TPA-Anfragen sind temporär und werden nicht persistiert.
+Homes werden serverseitig in `config/homes.json` gespeichert. Spawn und Warps liegen in `config/spawn.json` und `config/warps.json`. TPA-Anfragen sind temporär und werden nicht persistiert.
 
 ## Troubleshooting
 

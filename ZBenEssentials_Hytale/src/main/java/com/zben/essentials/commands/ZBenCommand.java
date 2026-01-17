@@ -1,17 +1,23 @@
 package com.zben.essentials.commands;
 
 import com.zben.essentials.model.Home;
+import com.zben.essentials.model.InteractiveMessage;
 import com.zben.essentials.model.PlayerLocation;
 import com.zben.essentials.model.TpaRequest;
+import com.zben.essentials.model.Warp;
+import com.zben.essentials.services.BackService;
 import com.zben.essentials.services.ConfigService;
 import com.zben.essentials.services.HomeService;
 import com.zben.essentials.services.MessageService;
 import com.zben.essentials.services.PermissionService;
+import com.zben.essentials.services.SpawnService;
 import com.zben.essentials.services.TpaService;
 import com.zben.essentials.services.UserService;
+import com.zben.essentials.services.WarpService;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +31,9 @@ public class ZBenCommand {
     private final PermissionService permissionService;
     private final UserService userService;
     private final HomeService homeService;
+    private final BackService backService;
+    private final SpawnService spawnService;
+    private final WarpService warpService;
     private final TpaService tpaService;
 
     public ZBenCommand(ConfigService configService,
@@ -32,12 +41,18 @@ public class ZBenCommand {
                        PermissionService permissionService,
                        UserService userService,
                        HomeService homeService,
+                       BackService backService,
+                       SpawnService spawnService,
+                       WarpService warpService,
                        TpaService tpaService) {
         this.configService = configService;
         this.messageService = messageService;
         this.permissionService = permissionService;
         this.userService = userService;
         this.homeService = homeService;
+        this.backService = backService;
+        this.spawnService = spawnService;
+        this.warpService = warpService;
         this.tpaService = tpaService;
     }
 
@@ -153,6 +168,9 @@ public class ZBenCommand {
             context.sendMessage(messageService.getMessage("error.home_not_found", placeholders));
             return;
         }
+        if (configService.getConfig().getBack().isEnabled()) {
+            backService.setBackLocation(context.getSenderId(), context.getSenderLocation());
+        }
         context.teleportSender(toLocation(home));
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("name", name);
@@ -247,10 +265,24 @@ public class ZBenCommand {
         ));
         Map<String, String> targetPlaceholders = new HashMap<>();
         targetPlaceholders.put("player", request.getSenderName());
-        context.sendMessageTo(request.getTargetId(), messageService.getMessage(
-                teleportHere ? "command.tpahere.received" : "command.tpa.received",
-                targetPlaceholders
-        ));
+        String requestText = messageService.getMessage("tpa_request_received", targetPlaceholders);
+        if (context.supportsChatComponents()) {
+            List<InteractiveMessage.Action> actions = new ArrayList<>();
+            actions.add(new InteractiveMessage.Action(
+                    messageService.getMessage("tpa_accept_button"),
+                    "/tpaccept",
+                    messageService.getMessage("tpa_accept_tooltip")
+            ));
+            actions.add(new InteractiveMessage.Action(
+                    messageService.getMessage("tpa_deny_button"),
+                    "/tpdeny",
+                    messageService.getMessage("tpa_deny_tooltip")
+            ));
+            context.sendInteractiveMessageTo(request.getTargetId(), new InteractiveMessage(requestText, actions));
+        } else {
+            context.sendMessageTo(request.getTargetId(), requestText);
+            context.sendMessageTo(request.getTargetId(), messageService.getMessage("tpa_request_fallback"));
+        }
     }
 
     public void handleTpaAccept(TpaCommandContext context) {
@@ -259,9 +291,18 @@ public class ZBenCommand {
             return;
         }
         Duration timeout = getTpaTimeout();
-        Optional<TpaRequest> request = tpaService.acceptRequest(context.getSenderId(), timeout);
+        TpaService.RequestOutcome outcome = tpaService.acceptRequest(context.getSenderId(), timeout);
+        if (outcome.getStatus() == TpaService.RequestStatus.NOT_FOUND) {
+            context.sendMessage(messageService.getMessage("tpa_request_missing"));
+            return;
+        }
+        if (outcome.getStatus() == TpaService.RequestStatus.EXPIRED) {
+            context.sendMessage(messageService.getMessage("tpa_request_expired"));
+            return;
+        }
+        Optional<TpaRequest> request = outcome.getRequest();
         if (request.isEmpty()) {
-            context.sendMessage(messageService.getMessage("error.tpa_no_request"));
+            context.sendMessage(messageService.getMessage("tpa_request_missing"));
             return;
         }
         TpaRequest resolved = request.get();
@@ -273,6 +314,9 @@ public class ZBenCommand {
                 ? context.getPlayerLocation(resolved.getSenderId())
                 : context.getPlayerLocation(resolved.getTargetId());
         UUID teleportPlayer = resolved.isTeleportHere() ? resolved.getTargetId() : resolved.getSenderId();
+        if (configService.getConfig().getBack().isEnabled()) {
+            backService.setBackLocation(teleportPlayer, context.getPlayerLocation(teleportPlayer));
+        }
         context.teleportPlayer(teleportPlayer, destination);
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("player", resolved.getSenderName());
@@ -289,9 +333,18 @@ public class ZBenCommand {
             return;
         }
         Duration timeout = getTpaTimeout();
-        Optional<TpaRequest> request = tpaService.denyRequest(context.getSenderId(), timeout);
+        TpaService.RequestOutcome outcome = tpaService.denyRequest(context.getSenderId(), timeout);
+        if (outcome.getStatus() == TpaService.RequestStatus.NOT_FOUND) {
+            context.sendMessage(messageService.getMessage("tpa_request_missing"));
+            return;
+        }
+        if (outcome.getStatus() == TpaService.RequestStatus.EXPIRED) {
+            context.sendMessage(messageService.getMessage("tpa_request_expired"));
+            return;
+        }
+        Optional<TpaRequest> request = outcome.getRequest();
         if (request.isEmpty()) {
-            context.sendMessage(messageService.getMessage("error.tpa_no_request"));
+            context.sendMessage(messageService.getMessage("tpa_request_missing"));
             return;
         }
         TpaRequest resolved = request.get();
@@ -304,9 +357,178 @@ public class ZBenCommand {
                 messageService.getMessage("command.tpa.denied.sender", senderPlaceholders));
     }
 
+    public void handleBack(HomeCommandContext context) {
+        if (!configService.getConfig().getBack().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.back")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        Optional<PlayerLocation> location = backService.getBackLocation(context.getSenderId());
+        if (location.isEmpty()) {
+            context.sendMessage(messageService.getMessage("back_none"));
+            return;
+        }
+        context.teleportSender(location.get());
+        context.sendMessage(messageService.getMessage("back_success"));
+    }
+
+    public void handleSetSpawn(HomeCommandContext context) {
+        if (!configService.getConfig().getSpawn().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.spawn.set")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        spawnService.setSpawn(context.getSenderLocation());
+        context.sendMessage(messageService.getMessage("spawn_set"));
+    }
+
+    public void handleSpawn(HomeCommandContext context) {
+        if (!configService.getConfig().getSpawn().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.spawn.use")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        Optional<PlayerLocation> spawn = spawnService.getSpawn();
+        if (spawn.isEmpty()) {
+            context.sendMessage(messageService.getMessage("spawn_no_spawn"));
+            return;
+        }
+        context.teleportSender(spawn.get());
+        context.sendMessage(messageService.getMessage("spawn_tp"));
+    }
+
+    public void handleSetWarp(HomeCommandContext context, String name) {
+        if (!configService.getConfig().getWarps().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.warp.set")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        if (!warpService.isValidWarpName(name)) {
+            context.sendMessage(messageService.getMessage("warp_invalid_name"));
+            return;
+        }
+        if (warpService.hasWarp(name)) {
+            context.sendMessage(messageService.getMessage("warp_exists"));
+            return;
+        }
+        PlayerLocation location = context.getSenderLocation();
+        Warp warp = new Warp(
+                location.getWorld(),
+                location.getX(),
+                location.getY(),
+                location.getZ(),
+                location.getYaw(),
+                location.getPitch(),
+                Instant.now().toString()
+        );
+        warpService.setWarp(name, warp);
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("name", name);
+        context.sendMessage(messageService.getMessage("warp_set", placeholders));
+    }
+
+    public void handleWarp(HomeCommandContext context, String name) {
+        if (!configService.getConfig().getWarps().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.warp.use")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        if (!warpService.isValidWarpName(name)) {
+            context.sendMessage(messageService.getMessage("warp_invalid_name"));
+            return;
+        }
+        Warp warp = warpService.getWarp(name);
+        if (warp == null) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("name", name);
+            context.sendMessage(messageService.getMessage("warp_not_found", placeholders));
+            return;
+        }
+        context.teleportSender(toLocation(warp));
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("name", name);
+        context.sendMessage(messageService.getMessage("warp_tp", placeholders));
+    }
+
+    public void handleDelWarp(HomeCommandContext context, String name) {
+        if (!configService.getConfig().getWarps().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.warp.del")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        if (!warpService.isValidWarpName(name)) {
+            context.sendMessage(messageService.getMessage("warp_invalid_name"));
+            return;
+        }
+        if (!warpService.removeWarp(name)) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("name", name);
+            context.sendMessage(messageService.getMessage("warp_not_found", placeholders));
+            return;
+        }
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("name", name);
+        context.sendMessage(messageService.getMessage("warp_deleted", placeholders));
+    }
+
+    public void handleWarps(HomeCommandContext context) {
+        if (!configService.getConfig().getWarps().isEnabled()) {
+            context.sendMessage(messageService.getMessage("error.feature_disabled"));
+            return;
+        }
+        if (!permissionService.hasPermission(context.getSenderId(), "zben.warp.list")) {
+            context.sendMessage(messageService.getMessage("error.no_permission"));
+            return;
+        }
+        List<String> warps = warpService.listWarps();
+        warps.sort(Comparator.naturalOrder());
+        if (warps.isEmpty()) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("warps", "-");
+            context.sendMessage(messageService.getMessage("warp_list_title", placeholders));
+            return;
+        }
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("warps", String.join(", ", warps));
+        String listTitle = messageService.getMessage("warp_list_title", placeholders);
+        if (context.supportsChatComponents()) {
+            List<InteractiveMessage.Action> actions = new ArrayList<>();
+            for (String warpName : warps) {
+                actions.add(new InteractiveMessage.Action(
+                        warpName,
+                        "/warp " + warpName,
+                        messageService.getMessage("warp_tp_hover")
+                ));
+            }
+            context.sendInteractiveMessage(new InteractiveMessage(listTitle, actions));
+        } else {
+            context.sendMessage(listTitle);
+        }
+    }
+
     public interface CommandContext {
         UUID getSenderId();
         void sendMessage(String message);
+        boolean supportsChatComponents();
+        void sendInteractiveMessage(InteractiveMessage message);
     }
 
     public interface HomeCommandContext extends CommandContext {
@@ -322,6 +544,7 @@ public class ZBenCommand {
         PlayerLocation getPlayerLocation(UUID playerId);
         void teleportPlayer(UUID playerId, PlayerLocation location);
         void sendMessageTo(UUID playerId, String message);
+        void sendInteractiveMessageTo(UUID playerId, InteractiveMessage message);
     }
 
     public static class PlayerInfo {
@@ -350,6 +573,17 @@ public class ZBenCommand {
                 home.getZ(),
                 home.getYaw(),
                 home.getPitch()
+        );
+    }
+
+    private PlayerLocation toLocation(Warp warp) {
+        return new PlayerLocation(
+                warp.getWorld(),
+                warp.getX(),
+                warp.getY(),
+                warp.getZ(),
+                warp.getYaw(),
+                warp.getPitch()
         );
     }
 

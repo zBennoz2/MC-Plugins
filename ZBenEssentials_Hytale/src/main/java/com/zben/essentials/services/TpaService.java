@@ -49,14 +49,29 @@ public class TpaService {
         return request;
     }
 
-    public Optional<TpaRequest> acceptRequest(UUID targetId, Duration timeout) {
-        expireOldRequests(timeout);
-        return removeRequest(targetId);
+    public RequestOutcome acceptRequest(UUID targetId, Duration timeout) {
+        return consumeRequest(targetId, timeout);
     }
 
-    public Optional<TpaRequest> denyRequest(UUID targetId, Duration timeout) {
-        expireOldRequests(timeout);
-        return removeRequest(targetId);
+    public RequestOutcome denyRequest(UUID targetId, Duration timeout) {
+        return consumeRequest(targetId, timeout);
+    }
+
+    public RequestOutcome consumeRequest(UUID targetId, Duration timeout) {
+        Instant now = Instant.now();
+        TpaRequest request = requestsByTarget.get(targetId);
+        if (request == null) {
+            expireOldRequests(timeout, now);
+            return new RequestOutcome(RequestStatus.NOT_FOUND, null);
+        }
+        if (isExpired(request, timeout, now)) {
+            removeRequest(targetId);
+            expireOldRequests(timeout, now);
+            return new RequestOutcome(RequestStatus.EXPIRED, null);
+        }
+        Optional<TpaRequest> resolved = removeRequest(targetId);
+        expireOldRequests(timeout, now);
+        return new RequestOutcome(RequestStatus.FOUND, resolved.orElse(null));
     }
 
     private Optional<TpaRequest> removeRequest(UUID targetId) {
@@ -72,14 +87,56 @@ public class TpaService {
             return;
         }
         Instant now = Instant.now();
+        expireOldRequests(timeout, now);
+    }
+
+    private void expireOldRequests(Duration timeout, Instant now) {
+        if (timeout.isZero() || timeout.isNegative()) {
+            return;
+        }
         Iterator<Map.Entry<UUID, TpaRequest>> iterator = requestsBySender.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, TpaRequest> entry = iterator.next();
             TpaRequest request = entry.getValue();
-            if (Duration.between(request.getCreatedAt(), now).compareTo(timeout) > 0) {
+            if (isExpired(request, timeout, now)) {
                 iterator.remove();
                 requestsByTarget.remove(request.getTargetId());
             }
+        }
+    }
+
+    private boolean isExpired(TpaRequest request, Duration timeout) {
+        return isExpired(request, timeout, Instant.now());
+    }
+
+    private boolean isExpired(TpaRequest request, Duration timeout, Instant now) {
+        if (timeout.isZero() || timeout.isNegative()) {
+            return false;
+        }
+        return Duration.between(request.getCreatedAt(), now).compareTo(timeout) > 0;
+    }
+
+    public enum RequestStatus {
+        FOUND,
+        EXPIRED,
+        NOT_FOUND
+    }
+
+    public static class RequestOutcome {
+        private final RequestStatus status;
+        private final TpaRequest request;
+
+        public RequestOutcome(RequestStatus status, TpaRequest request) {
+            this.status = status;
+            this.request = request;
+        }
+
+        public RequestStatus getStatus() {
+            return status;
+        }
+
+        public Optional<TpaRequest> getRequest() {
+            return Optional.ofNullable(request);
         }
     }
 }

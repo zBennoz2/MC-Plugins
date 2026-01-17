@@ -1,12 +1,16 @@
 package com.zben.essentials;
 
 import com.zben.essentials.commands.ZBenCommand;
+import com.zben.essentials.model.PlayerLocation;
+import com.zben.essentials.services.BackService;
 import com.zben.essentials.services.ConfigService;
 import com.zben.essentials.services.HomeService;
 import com.zben.essentials.services.MessageService;
 import com.zben.essentials.services.PermissionService;
+import com.zben.essentials.services.SpawnService;
 import com.zben.essentials.services.TpaService;
 import com.zben.essentials.services.UserService;
+import com.zben.essentials.services.WarpService;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -18,6 +22,9 @@ public class ZBenEssentialsMod {
     private UserService userService;
     private PermissionService permissionService;
     private HomeService homeService;
+    private BackService backService;
+    private SpawnService spawnService;
+    private WarpService warpService;
     private TpaService tpaService;
     private ZBenCommand zBenCommand;
 
@@ -32,13 +39,30 @@ public class ZBenEssentialsMod {
         homeService = new HomeService(dataDirectory.resolve("config"));
         homeService.loadOrCreate();
 
+        spawnService = new SpawnService(dataDirectory.resolve("config"));
+        spawnService.loadOrCreate();
+
+        warpService = new WarpService(dataDirectory.resolve("config"));
+        warpService.loadOrCreate();
+
         messageService = new MessageService(configService);
         messageService.loadLanguage();
 
         permissionService = new PermissionService(configService, userService);
+        backService = new BackService();
         tpaService = new TpaService();
 
-        zBenCommand = new ZBenCommand(configService, messageService, permissionService, userService, homeService, tpaService);
+        zBenCommand = new ZBenCommand(
+                configService,
+                messageService,
+                permissionService,
+                userService,
+                homeService,
+                backService,
+                spawnService,
+                warpService,
+                tpaService
+        );
         zBenCommand.register();
 
         logInfo("ZBenEssentials loaded");
@@ -66,6 +90,13 @@ public class ZBenEssentialsMod {
         placeholders.put("player", playerName);
         String key = joined ? "join.message" : "quit.message";
         sendMessage(true, messageService.getMessage(key, placeholders));
+    }
+
+    public void onPlayerDeath(java.util.UUID playerId, PlayerLocation location) {
+        if (!configService.getConfig().getBack().isEnabled()) {
+            return;
+        }
+        backService.setBackLocation(playerId, location);
     }
 
     public String formatChat(String playerName, String group, String message) {
