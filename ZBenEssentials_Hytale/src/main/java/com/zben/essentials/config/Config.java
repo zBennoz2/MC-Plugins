@@ -15,6 +15,9 @@ public class Config {
     private String defaultGroup = "default";
     private Map<String, Integer> homeLimits = new HashMap<>();
     private TpaConfig tpa = new TpaConfig();
+    private BackConfig back = new BackConfig();
+    private SpawnConfig spawn = new SpawnConfig();
+    private WarpsConfig warps = new WarpsConfig();
     private Map<String, String> messageOverrides = new HashMap<>();
 
     public Config() {
@@ -23,6 +26,10 @@ public class Config {
         GroupConfig defaultGroupConfig = new GroupConfig();
         defaultGroupConfig.getPermissions().add("zben.ping");
         defaultGroupConfig.getPermissions().add("zben.whoami");
+        defaultGroupConfig.getPermissions().add("zben.back");
+        defaultGroupConfig.getPermissions().add("zben.spawn.use");
+        defaultGroupConfig.getPermissions().add("zben.warp.use");
+        defaultGroupConfig.getPermissions().add("zben.warp.list");
         groups.put("default", defaultGroupConfig);
 
         homeLimits.put("default", 3);
@@ -108,6 +115,30 @@ public class Config {
 
     public void setTpa(TpaConfig tpa) {
         this.tpa = tpa;
+    }
+
+    public BackConfig getBack() {
+        return back;
+    }
+
+    public void setBack(BackConfig back) {
+        this.back = back;
+    }
+
+    public SpawnConfig getSpawn() {
+        return spawn;
+    }
+
+    public void setSpawn(SpawnConfig spawn) {
+        this.spawn = spawn;
+    }
+
+    public WarpsConfig getWarps() {
+        return warps;
+    }
+
+    public void setWarps(WarpsConfig warps) {
+        this.warps = warps;
     }
 
     public static class WelcomeConfig {
@@ -229,6 +260,42 @@ public class Config {
 
         public void setCooldownSeconds(int cooldownSeconds) {
             this.cooldownSeconds = cooldownSeconds;
+        }
+    }
+
+    public static class BackConfig {
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+    }
+
+    public static class SpawnConfig {
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+    }
+
+    public static class WarpsConfig {
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }
